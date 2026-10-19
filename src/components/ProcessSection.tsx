@@ -40,10 +40,10 @@ export const ProcessSection: React.FC<ProcessSectionProps> = ({ config, onOpenQu
     },
     {
       num: '05',
-      title: '천연 피톤치드 연무 탈취 & UV 살균',
-      desc: '국내산 편백나무 천연 피톤치드 원액을 미세 연무 분사하여 배관 내 냄새를 중화하고 강력한 자외선(UV-C) 살균으로 마무리합니다.',
-      icon: Sparkles,
-      detail: '피톤치드 항균 코팅 · UV-C 자외선 살균'
+      title: '부품 및 열교환기 건조 과정',
+      desc: '세척 후 부품과 냉각핀에 잔류하는 수분을 전용 송풍 장비를 통해 꼼꼼하게 말려주어 곰팡이와 잡균 재발을 원천 차단하는 집중 건조 과정입니다.',
+      icon: Wind,
+      detail: '전용 송풍 건조 · 잔류 수분 집중 건조 과정'
     },
     {
       num: '06',

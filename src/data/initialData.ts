@@ -42,7 +42,7 @@ export const initialPortfolio: PortfolioItem[] = [
     beforeImage: IMAGES.hero,
     afterImage: IMAGES.acDetail,
     description: '병원 진료실 집중 냉난방으로 드레인판에 누적된 슬러지와 송풍팬 곰팡이를 정밀 고압 제트 세척. 쾌적한 실내 공기질 확보.',
-    highlights: ['진료실 보양 비닐 작업', '친환경 알루미늄 핀 전용 세제', '피톤치드 연무 항균 마감'],
+    highlights: ['진료실 보양 비닐 작업', '친환경 알루미늄 핀 전용 세제', '부품 정밀 송풍 건조 마감'],
     date: '2026.10.12'
   },
   {
@@ -53,7 +53,7 @@ export const initialPortfolio: PortfolioItem[] = [
     beforeImage: IMAGES.acDetail,
     afterImage: IMAGES.hero,
     description: '영유아가 거주하는 가정으로 유기화학 물질이 없는 미 환경청(EPA) 인증 친환경 세척제만 사용하여 송풍팬 깊은 곳의 미세 오염까지 고압 물세척.',
-    highlights: ['영유아 안심 친환경 약품 사용', '정밀 분해 부품 물세척', '자외선 UV 살균 건조'],
+    highlights: ['영유아 안심 친환경 약품 사용', '정밀 분해 부품 물세척', '정밀 송풍 및 잔여 수분 건조'],
     date: '2026.10.08'
   },
   {
@@ -91,7 +91,7 @@ export const initialServices: ServiceDetail[] = [
     duration: '약 90분 ~ 120분 소요',
     priceStart: '130,000원부터~',
     summary: '하부 드레인 팬과 상부 듀얼 송풍팬, 복합 열교환기를 정밀 분해하여 묵은 먼지와 슬러지, 찌든 냄새를 고압 세척으로 말끔히 제거합니다.',
-    features: ['스마트 인버터 회로 기판 안전 차단', '하부 물받이 슬러지 세척', '친환경 전용 핀 세정제', '피톤치드 연무 탈취 마감'],
+    features: ['스마트 인버터 회로 기판 안전 차단', '하부 물받이 슬러지 세척', '친환경 전용 핀 세정제', '정밀 송풍 건조 및 수분 제거'],
     recommendedPeriod: '연 1회 정기 클리닝'
   },
   {

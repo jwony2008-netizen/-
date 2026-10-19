@@ -26,7 +26,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     },
     {
       q: '작업할 때 벽지나 가구, 바닥에 물이나 약품이 튀지 않나요?',
-      a: '시공 시작 전 작업 공간 전체에 전용 방수 비닐 보양 가대와 특수 드레인 워터백을 2중으로 설치합니다. 모든 오염수는 전용 호스를 통해 집수통으로 안전하게 모이므로 주변 벽지나 바닥에 단 한 방울의 물 튐도 발생하지 않습니다.'
+      a: '시공 시작 전 작업 공간에 전용 방수 비닐 보양 가대와 특수 드레인 워터백을 꼼꼼히 설치하여 안전하게 세척을 진행합니다. 모든 오염수는 전용 호스를 통해 집수통으로 안전하게 모입니다.\n\n※ 경고: 현장 상황에 따라 상이할 수 있습니다.'
     },
     {
       q: '청소 후 이상이 생기면 어떻게 처리되나요?',
@@ -142,8 +142,18 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                     )}
                   </button>
                   {isOpen && (
-                    <div className="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
-                      {faq.a}
+                    <div className="px-6 pb-5 pt-2 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
+                      {faq.a.includes('※ 경고:') ? (
+                        <div className="space-y-3">
+                          <p>{faq.a.split('\n\n※ 경고:')[0]}</p>
+                          <div className="p-3 bg-amber-50/90 border border-amber-200/90 rounded-xl text-xs font-semibold text-amber-800 flex items-center gap-2">
+                            <span className="font-bold text-amber-600">※ 경고 :</span>
+                            <span>{faq.a.split('\n\n※ 경고:')[1]?.trim() || '현장 상황에 따라 상이할 수 있습니다.'}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-line">{faq.a}</div>
+                      )}
                     </div>
                   )}
                 </div>

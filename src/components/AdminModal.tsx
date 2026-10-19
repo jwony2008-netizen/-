@@ -56,7 +56,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [newBeforeImg, setNewBeforeImg] = useState(IMAGES.acDetail);
   const [newAfterImg, setNewAfterImg] = useState(IMAGES.hero);
   const [newDesc, setNewDesc] = useState('');
-  const [newHighlights, setNewHighlights] = useState('송풍팬 정밀 분해 세척, 고압 제트 세척, 피톤치드 코팅');
+  const [newHighlights, setNewHighlights] = useState('송풍팬 정밀 분해 세척, 고압 제트 세척, 정밀 송풍 건조');
 
   if (!isOpen) return null;
 
@@ -388,7 +388,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <label className="block text-xs font-semibold text-slate-700 mb-1">시공 핵심 포인트 (쉼표 구분)</label>
                       <input
                         type="text"
-                        placeholder="송풍팬 분해 세척, 고압 제트 세척, 피톤치드 코팅"
+                        placeholder="송풍팬 정밀 분해 세척, 고압 제트 세척, 정밀 건조 과정"
                         value={newHighlights}
                         onChange={(e) => setNewHighlights(e.target.value)}
                         className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
