@@ -19,12 +19,21 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
 import { SiteConfig, PortfolioItem, ServiceDetail } from './types';
 
-// Initialize Firebase SDK with provisioned configuration
+const firebaseConfig = {
+  apiKey: 'AIzaSyDNLCZygZHVPRoj43Jxt3LrI51ibEfYcxs',
+  authDomain: 'dogecleansys.firebaseapp.com',
+  projectId: 'dogecleansys',
+  storageBucket: 'dogecleansys.firebasestorage.app',
+  messagingSenderId: '873853729482',
+  appId: '1:873853729482:web:7eba5c620ce5e3f097d233',
+  measurementId: 'G-DGW7EZ2B6S',
+};
+
+// Initialize Firebase SDK with direct configuration
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
