@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Inbox, 
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { SiteConfig, PortfolioItem, QuoteRequest } from '../types';
 import { IMAGES } from '../assets/images';
+import { compressImageFile } from '../utils/storage';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -52,6 +53,15 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formConfig, setFormConfig] = useState<SiteConfig>({ ...config });
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
+  useEffect(() => {
+    setFormConfig({ ...config });
+  }, [config]);
+
+  const showToast = (msg: string) => {
+    setSaveSuccessMsg(msg);
+    setTimeout(() => setSaveSuccessMsg(''), 3500);
+  };
+
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [inputPassword, setInputPassword] = useState('');
@@ -77,9 +87,22 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [editDesc, setEditDesc] = useState('');
   const [editHighlights, setEditHighlights] = useState('');
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (val: string) => void,
+    preserveAlpha = false
+  ) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+    try {
+      const compressedDataUrl = await compressImageFile(file, {
+        maxWidth: preserveAlpha ? 600 : 1280,
+        maxHeight: preserveAlpha ? 600 : 1280,
+        quality: 0.82,
+        preserveAlpha,
+      });
+      setter(compressedDataUrl);
+    } catch {
       const reader = new FileReader();
       reader.onload = (uploadEvent) => {
         if (uploadEvent.target?.result) {
@@ -159,33 +182,59 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormConfig(updated);
   };
 
+  const commitNewPortfolioIfFilled = () => {
+    if (isAddingProject && newTitle.trim()) {
+      const newItem: PortfolioItem = {
+        id: `case-${Date.now()}`,
+        title: newTitle.trim(),
+        category: newCategory,
+        location: newLocation.trim() || '전북 익산/전주/군산',
+        beforeImage: newBeforeImg.trim() || IMAGES.acDetail,
+        afterImage: newAfterImg.trim() || IMAGES.hero,
+        description: newDesc.trim() || '도지클린시스템 전문 엔지니어의 정밀 분해 세척 및 제빙기 고온스팀 살균 시공.',
+        highlights: newHighlights.split(',').map(s => s.trim()).filter(Boolean),
+        date: new Date().toISOString().slice(0, 10).replace(/-/g, '.')
+      };
+      onAddPortfolio(newItem);
+      setNewTitle('');
+      setNewLocation('');
+      setNewDesc('');
+      setIsAddingProject(false);
+      return true;
+    }
+    return false;
+  };
+
+  const commitEditingPortfolioIfOpen = () => {
+    if (editingItem && editTitle.trim()) {
+      onUpdatePortfolio({
+        ...editingItem,
+        title: editTitle.trim(),
+        category: editCategory,
+        location: editLocation.trim(),
+        beforeImage: editBeforeImg.trim(),
+        afterImage: editAfterImg.trim(),
+        description: editDesc.trim(),
+        highlights: editHighlights.split(',').map((s) => s.trim()).filter(Boolean),
+      });
+      setEditingItem(null);
+      return true;
+    }
+    return false;
+  };
+
   const handleSaveConfig = () => {
+    commitNewPortfolioIfFilled();
+    commitEditingPortfolioIfOpen();
     onSaveConfig(formConfig);
-    setSaveSuccessMsg('설정이 성공적으로 저장 및 반영되었습니다.');
-    setTimeout(() => setSaveSuccessMsg(''), 3000);
+    showToast('모든 게시글 및 설정이 성공적으로 영구 저장되었습니다.');
   };
 
   const handleCreatePortfolio = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
-
-    const newItem: PortfolioItem = {
-      id: `case-${Date.now()}`,
-      title: newTitle.trim(),
-      category: newCategory,
-      location: newLocation.trim() || '전북 익산/전주/군산',
-      beforeImage: newBeforeImg.trim(),
-      afterImage: newAfterImg.trim(),
-      description: newDesc.trim() || '도지클린시스템 전문 엔지니어의 정밀 분해 세척 및 제빙기 고온스팀 살균 시공.',
-      highlights: newHighlights.split(',').map(s => s.trim()).filter(Boolean),
-      date: new Date().toISOString().slice(0, 10).replace(/-/g, '.')
-    };
-
-    onAddPortfolio(newItem);
-    setNewTitle('');
-    setNewLocation('');
-    setNewDesc('');
-    setIsAddingProject(false);
+    commitNewPortfolioIfFilled();
+    showToast('새 시공 사례가 등록 및 저장되었습니다.');
   };
 
   const colorPresets = [
@@ -636,17 +685,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     onSubmit={(e) => {
                       e.preventDefault();
                       if (!editTitle.trim()) return;
-                      onUpdatePortfolio({
-                        ...editingItem,
-                        title: editTitle.trim(),
-                        category: editCategory,
-                        location: editLocation.trim(),
-                        beforeImage: editBeforeImg.trim(),
-                        afterImage: editAfterImg.trim(),
-                        description: editDesc.trim(),
-                        highlights: editHighlights.split(',').map((s) => s.trim()).filter(Boolean),
-                      });
-                      setEditingItem(null);
+                      commitEditingPortfolioIfOpen();
+                      showToast('시공 사례 수정사항이 저장 및 반영되었습니다.');
                     }}
                     className="bg-white p-6 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 space-y-4 my-auto max-h-[90vh] overflow-y-auto"
                   >
@@ -1003,7 +1043,18 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, (url) => handleConfigChange('logoUrl', url))}
+                      onChange={(e) =>
+                        handleFileUpload(
+                          e,
+                          (url) => {
+                            const updated = { ...formConfig, logoUrl: url };
+                            setFormConfig(updated);
+                            onSaveConfig(updated);
+                            showToast('로고 이미지가 적용 및 저장되었습니다.');
+                          },
+                          true
+                        )
+                      }
                       className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                     />
                     <input

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, CheckCircle2, AlertTriangle, Sparkles, SlidersHorizontal, MapPin, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, AlertTriangle, Sparkles, SlidersHorizontal, MapPin, Calendar } from 'lucide-react';
 import { PortfolioItem, SiteConfig } from '../types';
 
 interface BeforeAfterGalleryProps {
@@ -14,11 +14,30 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
   onOpenQuote
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('전체');
-  const [activeItem, setActiveItem] = useState<PortfolioItem>(portfolio[0] || {} as PortfolioItem);
+  const [activeItem, setActiveItem] = useState<PortfolioItem>(portfolio[0] || ({} as PortfolioItem));
   const [sliderPosition, setSliderPosition] = useState<number>(50);
   const [viewMode, setViewMode] = useState<'slider' | 'side-by-side'>('slider');
+  const prevFirstIdRef = useRef<string | undefined>(portfolio[0]?.id);
 
-  const categories = ['전체', '에어컨 정밀세척', '업소용 제빙기', '가정용 토탈케어'];
+  // Sync activeItem when a new portfolio item is added or updated
+  useEffect(() => {
+    if (portfolio.length === 0) return;
+    const firstId = portfolio[0]?.id;
+    if (firstId && firstId !== prevFirstIdRef.current) {
+      prevFirstIdRef.current = firstId;
+      setSelectedCategory('전체');
+      setActiveItem(portfolio[0]);
+      return;
+    }
+    const updatedActive = portfolio.find((p) => p.id === activeItem.id);
+    if (updatedActive) {
+      setActiveItem(updatedActive);
+    } else {
+      setActiveItem(portfolio[0]);
+    }
+  }, [portfolio]);
+
+  const categories = ['전체', '에어컨 정밀세척', '업소용 제빙기', '시스템/기업', '가정용 토탈케어'];
 
   const filteredItems = portfolio.filter((item) => {
     if (selectedCategory === '전체') return true;
@@ -26,6 +45,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
   });
 
   const currentItem = portfolio.find(p => p.id === activeItem.id) || filteredItems[0] || portfolio[0];
+  const isSameBeforeAfterSource = currentItem && currentItem.beforeImage === currentItem.afterImage;
 
   return (
     <section id="gallery" className="py-20 bg-white border-b border-slate-200/80">
@@ -87,7 +107,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                       referrerPolicy="no-referrer"
                     />
 
-                    {/* Before Image (Clipped Overlay with simulated dirty filter if same source image) */}
+                    {/* Before Image (Clipped Overlay) */}
                     <div
                       className="absolute inset-0 overflow-hidden"
                       style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
@@ -96,7 +116,9 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                         src={currentItem.beforeImage}
                         onError={(e) => { e.currentTarget.src = '/images/hero.jpg'; }}
                         alt={`${currentItem.title} 세척 전`}
-                        className="absolute inset-0 w-full h-full object-cover brightness-[0.72] contrast-[1.15] sepia-[0.35]"
+                        className={`absolute inset-0 w-full h-full object-cover ${
+                          isSameBeforeAfterSource ? 'brightness-[0.72] contrast-[1.15] sepia-[0.35]' : ''
+                        }`}
                         referrerPolicy="no-referrer"
                       />
                       <div className="absolute top-4 left-4 bg-red-600/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-md backdrop-blur-sm shadow flex items-center gap-1">
@@ -140,7 +162,9 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                         src={currentItem.beforeImage}
                         onError={(e) => { e.currentTarget.src = '/images/hero.jpg'; }}
                         alt="세척 전"
-                        className="w-full h-full object-cover brightness-[0.72] sepia-[0.35]"
+                        className={`w-full h-full object-cover ${
+                          isSameBeforeAfterSource ? 'brightness-[0.72] sepia-[0.35]' : ''
+                        }`}
                         referrerPolicy="no-referrer"
                       />
                       <span className="absolute top-4 left-4 bg-red-600/90 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow">

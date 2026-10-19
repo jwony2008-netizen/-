@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   SiteConfig, 
   PortfolioItem, 
@@ -25,15 +25,15 @@ import { ReviewsSection } from './components/ReviewsSection';
 import { QuoteModal } from './components/QuoteModal';
 import { AdminModal } from './components/AdminModal';
 import { Footer } from './components/Footer';
-import { Phone, MessageCircle, ArrowUp } from 'lucide-react';
+import { Phone, ArrowUp } from 'lucide-react';
+import { loadAppState, saveAppState, clearAppState } from './utils/storage';
 
 export default function App() {
-  // 1. Persistent State initialized from LocalStorage (with schema migration)
+  // 1. Persistent State initialized from LocalStorage (with async hydration from Server & IndexedDB)
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
       const saved = localStorage.getItem('doge_clean_config_v7');
       if (saved) return { ...initialSiteConfig, ...JSON.parse(saved) };
-      // Seamless migration from v6 with updated Kakao, Daangn, and Naver Blog links
       const prevV6 = localStorage.getItem('doge_clean_config_v6');
       if (prevV6) {
         const parsed = JSON.parse(prevV6);
@@ -71,6 +71,31 @@ export default function App() {
     }
   });
 
+  const isHydratedRef = useRef(false);
+
+  // Load persisted data from Server / IndexedDB / LocalStorage on mount
+  useEffect(() => {
+    let mounted = true;
+    loadAppState().then((loaded) => {
+      if (!mounted) return;
+      if (loaded) {
+        if (loaded.config) {
+          setConfig((prev) => ({ ...prev, ...loaded.config }));
+        }
+        if (Array.isArray(loaded.portfolio) && loaded.portfolio.length > 0) {
+          setPortfolio(loaded.portfolio);
+        }
+        if (Array.isArray(loaded.quotes)) {
+          setQuotes(loaded.quotes);
+        }
+      }
+      isHydratedRef.current = true;
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Modal States
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -78,14 +103,8 @@ export default function App() {
   const [prefillPhone, setPrefillPhone] = useState('');
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Sync to LocalStorage & Document Meta
+  // Sync Document Meta & Persist after hydration
   useEffect(() => {
-    try {
-      localStorage.setItem('doge_clean_config_v7', JSON.stringify(config));
-    } catch (e) {
-      console.warn('LocalStorage save failed:', e);
-    }
-
     if (config.seoTitle) {
       document.title = config.seoTitle;
     }
@@ -96,20 +115,9 @@ export default function App() {
   }, [config]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('doge_clean_portfolio_v6', JSON.stringify(portfolio));
-    } catch (e) {
-      console.warn('LocalStorage save failed:', e);
-    }
-  }, [portfolio]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('doge_clean_quotes_v6', JSON.stringify(quotes));
-    } catch (e) {
-      console.warn('LocalStorage save failed:', e);
-    }
-  }, [quotes]);
+    if (!isHydratedRef.current) return;
+    saveAppState({ config, portfolio, quotes });
+  }, [config, portfolio, quotes]);
 
   // Scroll listener for Top button
   useEffect(() => {
@@ -124,7 +132,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handlers
+  // Handlers with immediate persistence
   const handleOpenQuote = (service?: string, phone?: string) => {
     setPrefillService(service || '');
     setPrefillPhone(phone || '');
@@ -132,47 +140,68 @@ export default function App() {
   };
 
   const handleAddQuote = (newQuote: QuoteRequest) => {
-    setQuotes((prev) => [newQuote, ...prev]);
+    setQuotes((prev) => {
+      const next = [newQuote, ...prev];
+      saveAppState({ config, portfolio, quotes: next });
+      return next;
+    });
   };
 
   const handleUpdateQuoteStatus = (id: string, status: QuoteRequest['status']) => {
-    setQuotes((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, status } : q))
-    );
+    setQuotes((prev) => {
+      const next = prev.map((q) => (q.id === id ? { ...q, status } : q));
+      saveAppState({ config, portfolio, quotes: next });
+      return next;
+    });
   };
 
   const handleDeleteQuote = (id: string) => {
-    setQuotes((prev) => prev.filter((q) => q.id !== id));
+    setQuotes((prev) => {
+      const next = prev.filter((q) => q.id !== id);
+      saveAppState({ config, portfolio, quotes: next });
+      return next;
+    });
   };
 
   const handleClearQuotes = () => {
     setQuotes([]);
+    saveAppState({ config, portfolio, quotes: [] });
   };
 
   const handleSaveConfig = (updatedConfig: SiteConfig) => {
     setConfig(updatedConfig);
+    saveAppState({ config: updatedConfig, portfolio, quotes });
   };
 
   const handleResetConfig = () => {
     setConfig(initialSiteConfig);
     setPortfolio(initialPortfolio);
     setQuotes(initialQuotes);
-    localStorage.removeItem('doge_clean_config_v7');
-    localStorage.removeItem('doge_clean_config_v6');
-    localStorage.removeItem('doge_clean_portfolio_v6');
-    localStorage.removeItem('doge_clean_quotes_v6');
+    clearAppState();
   };
 
   const handleAddPortfolio = (newItem: PortfolioItem) => {
-    setPortfolio((prev) => [newItem, ...prev]);
+    setPortfolio((prev) => {
+      const next = [newItem, ...prev];
+      saveAppState({ config, portfolio: next, quotes });
+      return next;
+    });
   };
 
   const handleUpdatePortfolio = (updatedItem: PortfolioItem) => {
-    setPortfolio((prev) => prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)));
+    setPortfolio((prev) => {
+      const next = prev.map((item) => (item.id === updatedItem.id ? updatedItem : item));
+      saveAppState({ config, portfolio: next, quotes });
+      return next;
+    });
   };
 
   const handleDeletePortfolio = (id: string) => {
-    setPortfolio((prev) => prev.filter((item) => item.id !== id));
+    setPortfolio((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      saveAppState({ config, portfolio: next, quotes });
+      return next;
+    });
   };
 
   const scrollToTop = () => {
