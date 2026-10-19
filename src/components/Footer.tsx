@@ -53,7 +53,7 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenQuote, onOpenAdmin
           <div className="md:col-span-5 space-y-3">
             <div className="flex items-center gap-2 text-white font-bold text-base">
               <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow border border-slate-800">
-                <img src={IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
+                <img src={config.logoUrl || IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
               </div>
               <span>{config.brandName}</span>
             </div>

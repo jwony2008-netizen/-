@@ -19,6 +19,7 @@ export interface SiteConfig {
   seoDescription: string;
   formspreeEndpoint?: string;
   adminPassword?: string;
+  logoUrl?: string;
 }
 
 export interface PortfolioItem {

@@ -21,7 +21,8 @@ export const initialSiteConfig: SiteConfig = {
   seoTitle: '도지클린시스템 - 전북 익산·전주·군산 에어컨 & 제빙기 정밀 분해 살균세척',
   seoDescription: '전북 익산시 서동로 151-7 위치. 에어컨 정밀 분해 세척, 업소용·가정용 제빙기 고온스팀 살균, 카드결제 및 현금영수증 발행 가능, 30일 무상 A/S 도지클린시스템',
   formspreeEndpoint: 'https://formspree.io/f/xqpejjvp',
-  adminPassword: '1234'
+  adminPassword: '1234',
+  logoUrl: ''
 };
 
 export const initialPortfolio: PortfolioItem[] = [

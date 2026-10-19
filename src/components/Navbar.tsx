@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Zone 1: Single text element wordmark */}
         <a href="#" className="flex items-center gap-2.5 shrink-0 group">
           <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-md transition-transform group-hover:scale-105 border border-slate-100">
-            <img src={IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
+            <img src={config.logoUrl || IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-extrabold tracking-tight text-slate-900 whitespace-nowrap">
