@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Award, Sparkles, Wrench, Thermometer, Layers, SprayCan, Wind, RefreshCw, UserCheck } from 'lucide-react';
 import { SiteConfig } from '../types';
+import { IMAGES } from '../assets/images';
 
 interface ProcessSectionProps {
   config: SiteConfig;
@@ -113,7 +114,8 @@ export const ProcessSection: React.FC<ProcessSectionProps> = ({ config, onOpenQu
         <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-lg grid grid-cols-1 lg:grid-cols-12 items-center">
           <div className="lg:col-span-5 relative h-72 lg:h-full min-h-[320px]">
             <img
-              src="/src/assets/images/technician_team_portrait_1792396308618.jpg"
+              src={IMAGES.technicianPortrait}
+              onError={(e) => { e.currentTarget.src = '/images/technician.jpg'; }}
               alt="도지클린시스템 전문 클리닝 엔지니어"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"

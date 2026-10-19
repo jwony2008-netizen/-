@@ -31,7 +31,7 @@ export default function App() {
   // 1. Persistent State initialized from LocalStorage (with schema migration)
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
-      const saved = localStorage.getItem('doge_clean_config_v5');
+      const saved = localStorage.getItem('doge_clean_config_v6');
       if (saved) return JSON.parse(saved);
       return initialSiteConfig;
     } catch {
@@ -41,7 +41,7 @@ export default function App() {
 
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(() => {
     try {
-      const saved = localStorage.getItem('doge_clean_portfolio_v5');
+      const saved = localStorage.getItem('doge_clean_portfolio_v6');
       if (saved) return JSON.parse(saved);
       return initialPortfolio;
     } catch {
@@ -51,7 +51,7 @@ export default function App() {
 
   const [quotes, setQuotes] = useState<QuoteRequest[]>(() => {
     try {
-      const saved = localStorage.getItem('doge_clean_quotes_v5');
+      const saved = localStorage.getItem('doge_clean_quotes_v6');
       if (saved) return JSON.parse(saved);
       return initialQuotes;
     } catch {
@@ -69,7 +69,7 @@ export default function App() {
   // Sync to LocalStorage & Document Meta
   useEffect(() => {
     try {
-      localStorage.setItem('doge_clean_config_v5', JSON.stringify(config));
+      localStorage.setItem('doge_clean_config_v6', JSON.stringify(config));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
@@ -85,7 +85,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('doge_clean_portfolio_v5', JSON.stringify(portfolio));
+      localStorage.setItem('doge_clean_portfolio_v6', JSON.stringify(portfolio));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
@@ -93,7 +93,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('doge_clean_quotes_v5', JSON.stringify(quotes));
+      localStorage.setItem('doge_clean_quotes_v6', JSON.stringify(quotes));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
@@ -145,9 +145,9 @@ export default function App() {
     setConfig(initialSiteConfig);
     setPortfolio(initialPortfolio);
     setQuotes(initialQuotes);
-    localStorage.removeItem('doge_clean_config_v5');
-    localStorage.removeItem('doge_clean_portfolio_v5');
-    localStorage.removeItem('doge_clean_quotes_v5');
+    localStorage.removeItem('doge_clean_config_v6');
+    localStorage.removeItem('doge_clean_portfolio_v6');
+    localStorage.removeItem('doge_clean_quotes_v6');
   };
 
   const handleAddPortfolio = (newItem: PortfolioItem) => {

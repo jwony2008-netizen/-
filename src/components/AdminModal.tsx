@@ -13,6 +13,7 @@ import {
   Check
 } from 'lucide-react';
 import { SiteConfig, PortfolioItem, QuoteRequest } from '../types';
+import { IMAGES } from '../assets/images';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -52,8 +53,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<PortfolioItem['category']>('에어컨 정밀세척');
   const [newLocation, setNewLocation] = useState('');
-  const [newBeforeImg, setNewBeforeImg] = useState('/src/assets/images/ac_cleaning_detail_1792396307135.jpg');
-  const [newAfterImg, setNewAfterImg] = useState('/src/assets/images/young_korean_tech_hero_1792405760085.jpg');
+  const [newBeforeImg, setNewBeforeImg] = useState(IMAGES.acDetail);
+  const [newAfterImg, setNewAfterImg] = useState(IMAGES.hero);
   const [newDesc, setNewDesc] = useState('');
   const [newHighlights, setNewHighlights] = useState('송풍팬 정밀 분해 세척, 고압 제트 세척, 피톤치드 코팅');
 
@@ -457,6 +458,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <div className="w-16 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0">
                         <img
                           src={item.afterImage}
+                          onError={(e) => { e.currentTarget.src = '/images/ac_detail.jpg'; }}
                           alt={item.title}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"

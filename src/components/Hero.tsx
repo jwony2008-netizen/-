@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, CheckCircle2, ArrowRight, Zap, Award, UserCheck } from 'lucide-react';
 import { SiteConfig } from '../types';
+import { IMAGES } from '../assets/images';
 
 interface HeroProps {
   config: SiteConfig;
@@ -118,7 +119,8 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 bg-slate-100 group">
               <img
-                src="/src/assets/images/young_korean_tech_hero_1792405760085.jpg"
+                src={IMAGES.hero}
+                onError={(e) => { e.currentTarget.src = '/images/hero.jpg'; }}
                 alt="도지클린시스템 전문 엔지니어의 에어컨 정밀 고압 제트 세척 현장"
                 className="w-full h-[400px] sm:h-[480px] lg:h-[520px] object-cover transition-transform duration-700 group-hover:scale-105"
                 referrerPolicy="no-referrer"

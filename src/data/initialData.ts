@@ -1,4 +1,5 @@
 import { SiteConfig, PortfolioItem, ServiceDetail, ReviewItem, QuoteRequest } from '../types';
+import { IMAGES } from '../assets/images';
 
 export const initialSiteConfig: SiteConfig = {
   brandName: '도지클린시스템',
@@ -27,8 +28,8 @@ export const initialPortfolio: PortfolioItem[] = [
     title: '익산 영등동 대형 베이커리 카페 호시자키 150kg 제빙기 분해 살균',
     category: '업소용 제빙기',
     location: '전북 익산시 영등동',
-    beforeImage: '/src/assets/images/icemaker_cleaning_detail_1792396307580.jpg',
-    afterImage: '/src/assets/images/icemaker_cleaning_detail_1792396307580.jpg',
+    beforeImage: IMAGES.icemakerDetail,
+    afterImage: IMAGES.icemakerDetail,
     description: '물때와 석회 스케일, 물받이 오염을 전용 식품등급 세척액과 130도 고압 스팀으로 철저히 살균. 투명하고 단단한 얼음 품질 회복.',
     highlights: ['전극봉 및 수중펌프 분해', '식품첨가물 구연산 스케일링', '130℃ 초고온 스팀 노즐 살균'],
     date: '2026.10.15'
@@ -38,8 +39,8 @@ export const initialPortfolio: PortfolioItem[] = [
     title: '전주 신시가지 메디컬 빌딩 천장형 4Way 시스템 에어컨 12대 정기 케어',
     category: '에어컨 정밀세척',
     location: '전북 전주시 완산구 효자동',
-    beforeImage: '/src/assets/images/young_korean_tech_hero_1792405760085.jpg',
-    afterImage: '/src/assets/images/ac_cleaning_detail_1792396307135.jpg',
+    beforeImage: IMAGES.hero,
+    afterImage: IMAGES.acDetail,
     description: '병원 진료실 집중 냉난방으로 드레인판에 누적된 슬러지와 송풍팬 곰팡이를 정밀 고압 제트 세척. 쾌적한 실내 공기질 확보.',
     highlights: ['진료실 보양 비닐 작업', '친환경 알루미늄 핀 전용 세제', '피톤치드 연무 항균 마감'],
     date: '2026.10.12'
@@ -49,8 +50,8 @@ export const initialPortfolio: PortfolioItem[] = [
     title: '익산 모현동 현대아이파크 34평 가정용 스탠드+벽걸이 2in1 정밀 세척',
     category: '가정용 토탈케어',
     location: '전북 익산시 모현동',
-    beforeImage: '/src/assets/images/ac_cleaning_detail_1792396307135.jpg',
-    afterImage: '/src/assets/images/young_korean_tech_hero_1792405760085.jpg',
+    beforeImage: IMAGES.acDetail,
+    afterImage: IMAGES.hero,
     description: '영유아가 거주하는 가정으로 유기화학 물질이 없는 미 환경청(EPA) 인증 친환경 세척제만 사용하여 송풍팬 깊은 곳의 미세 오염까지 고압 물세척.',
     highlights: ['영유아 안심 친환경 약품 사용', '정밀 분해 부품 물세척', '자외선 UV 살균 건조'],
     date: '2026.10.08'
@@ -60,8 +61,8 @@ export const initialPortfolio: PortfolioItem[] = [
     title: '군산 수송동 디저트 카페 카이저(KAISER) 공랭식 제빙기 케어',
     category: '업소용 제빙기',
     location: '전북 군산시 수송동',
-    beforeImage: '/src/assets/images/icemaker_cleaning_detail_1792396307580.jpg',
-    afterImage: '/src/assets/images/icemaker_cleaning_detail_1792396307580.jpg',
+    beforeImage: IMAGES.icemakerDetail,
+    afterImage: IMAGES.icemakerDetail,
     description: '얼음 생성 속도 저하 및 냄새 개선을 위해 출동. 급수 밸브 슬러지 제거 및 130℃ 스팀 에바포레이터 냉판 특수 세척으로 본래 성능 복원.',
     highlights: ['맞춤 시간대 방문 시공', '130℃ 스팀 배관 살균', '얼음 생성 효율 복원'],
     date: '2026.10.03'

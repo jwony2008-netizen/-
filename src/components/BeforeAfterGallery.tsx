@@ -81,6 +81,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                     {/* After Image (Background) */}
                     <img
                       src={currentItem.afterImage}
+                      onError={(e) => { e.currentTarget.src = '/images/ac_detail.jpg'; }}
                       alt={`${currentItem.title} 세척 후`}
                       className="absolute inset-0 w-full h-full object-cover"
                       referrerPolicy="no-referrer"
@@ -93,6 +94,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                     >
                       <img
                         src={currentItem.beforeImage}
+                        onError={(e) => { e.currentTarget.src = '/images/hero.jpg'; }}
                         alt={`${currentItem.title} 세척 전`}
                         className="absolute inset-0 w-full h-full object-cover brightness-[0.72] contrast-[1.15] sepia-[0.35]"
                         referrerPolicy="no-referrer"
@@ -136,6 +138,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                     <div className="relative border-r border-slate-800">
                       <img
                         src={currentItem.beforeImage}
+                        onError={(e) => { e.currentTarget.src = '/images/hero.jpg'; }}
                         alt="세척 전"
                         className="w-full h-full object-cover brightness-[0.72] sepia-[0.35]"
                         referrerPolicy="no-referrer"
@@ -147,6 +150,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                     <div className="relative">
                       <img
                         src={currentItem.afterImage}
+                        onError={(e) => { e.currentTarget.src = '/images/ac_detail.jpg'; }}
                         alt="세척 후"
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
@@ -260,6 +264,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
               <div className="aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 mb-3 relative">
                 <img
                   src={item.afterImage}
+                  onError={(e) => { e.currentTarget.src = '/images/ac_detail.jpg'; }}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   referrerPolicy="no-referrer"
