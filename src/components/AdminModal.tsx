@@ -8,9 +8,11 @@ import {
   Globe, 
   Plus, 
   Trash2, 
+  Edit3,
   RotateCcw, 
   Save,
-  Check
+  Check,
+  Shield
 } from 'lucide-react';
 import { SiteConfig, PortfolioItem, QuoteRequest } from '../types';
 import { IMAGES } from '../assets/images';
@@ -23,6 +25,7 @@ interface AdminModalProps {
   onResetConfig: () => void;
   portfolio: PortfolioItem[];
   onAddPortfolio: (newItem: PortfolioItem) => void;
+  onUpdatePortfolio: (item: PortfolioItem) => void;
   onDeletePortfolio: (id: string) => void;
   quotes: QuoteRequest[];
   onUpdateQuoteStatus: (id: string, status: QuoteRequest['status']) => void;
@@ -38,6 +41,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onResetConfig,
   portfolio,
   onAddPortfolio,
+  onUpdatePortfolio,
   onDeletePortfolio,
   quotes,
   onUpdateQuoteStatus,
@@ -47,6 +51,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [activeTab, setActiveTab] = useState<'quotes' | 'portfolio' | 'content' | 'theme' | 'seo'>('quotes');
   const [formConfig, setFormConfig] = useState<SiteConfig>({ ...config });
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
+
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [inputPassword, setInputPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Portfolio Form State
   const [isAddingProject, setIsAddingProject] = useState(false);
@@ -58,7 +67,92 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [newDesc, setNewDesc] = useState('');
   const [newHighlights, setNewHighlights] = useState('송풍팬 정밀 분해 세척, 고압 제트 세척, 정밀 송풍 건조');
 
+  // Portfolio Edit State
+  const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState<PortfolioItem['category']>('에어컨 정밀세척');
+  const [editLocation, setEditLocation] = useState('');
+  const [editBeforeImg, setEditBeforeImg] = useState('');
+  const [editAfterImg, setEditAfterImg] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editHighlights, setEditHighlights] = useState('');
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        if (uploadEvent.target?.result) {
+          setter(uploadEvent.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (!isOpen) return null;
+
+  if (!isAuthenticated) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div 
+          className="relative bg-white rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-center animate-in fade-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors"
+            aria-label="닫기"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 shadow-inner">
+            <Shield className="w-7 h-7" />
+          </div>
+
+          <h3 className="text-xl font-extrabold text-slate-900 mb-1">
+            관리자 모드 보안 인증
+          </h3>
+          <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+            관리자 대시보드에 접근하려면 비밀번호를 입력해 주세요.
+          </p>
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const correctPw = config.adminPassword || '1234';
+            if (inputPassword === correctPw) {
+              setIsAuthenticated(true);
+              setPasswordError('');
+            } else {
+              setPasswordError('비밀번호가 일치하지 않습니다.');
+            }
+          }} className="space-y-4">
+            <div>
+              <input
+                type="password"
+                placeholder="비밀번호 입력"
+                value={inputPassword}
+                onChange={(e) => setInputPassword(e.target.value)}
+                className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-mono tracking-widest"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="text-xs text-rose-500 font-medium mt-2">{passwordError}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+            >
+              관리자 모드 접속
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const handleConfigChange = (key: keyof SiteConfig, value: string) => {
     const updated = { ...formConfig, [key]: value };
@@ -396,23 +490,51 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Before 이미지 경로/URL</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-slate-700">Before 이미지 (직접 첨부 또는 URL)</label>
+                        {newBeforeImg && (
+                          <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                            <img src={newBeforeImg} alt="Before preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, setNewBeforeImg)}
+                        className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer mb-2"
+                      />
                       <input
                         type="text"
+                        placeholder="또는 이미지 URL 입력"
                         value={newBeforeImg}
                         onChange={(e) => setNewBeforeImg(e.target.value)}
-                        className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                        className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">After 이미지 경로/URL</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-slate-700">After 이미지 (직접 첨부 또는 URL)</label>
+                        {newAfterImg && (
+                          <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                            <img src={newAfterImg} alt="After preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, setNewAfterImg)}
+                        className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer mb-2"
+                      />
                       <input
                         type="text"
+                        placeholder="또는 이미지 URL 입력"
                         value={newAfterImg}
                         onChange={(e) => setNewAfterImg(e.target.value)}
-                        className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                        className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                       />
                     </div>
                   </div>
@@ -478,17 +600,192 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         </div>
                       </div>
                     </div>
-
-                    <button
-                      onClick={() => onDeletePortfolio(item.id)}
-                      className="p-2 text-slate-400 hover:text-red-600 rounded-lg transition-colors shrink-0"
-                      title="사례 삭제"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingItem(item);
+                          setEditTitle(item.title);
+                          setEditCategory(item.category);
+                          setEditLocation(item.location);
+                          setEditBeforeImg(item.beforeImage);
+                          setEditAfterImg(item.afterImage);
+                          setEditDesc(item.description);
+                          setEditHighlights(item.highlights.join(', '));
+                        }}
+                        className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors"
+                        title="사례 수정"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => onDeletePortfolio(item.id)}
+                        className="p-2 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                        title="사례 삭제"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
+
+              {/* Edit Portfolio Modal */}
+              {editingItem && (
+                <div className="fixed inset-0 z-60 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!editTitle.trim()) return;
+                      onUpdatePortfolio({
+                        ...editingItem,
+                        title: editTitle.trim(),
+                        category: editCategory,
+                        location: editLocation.trim(),
+                        beforeImage: editBeforeImg.trim(),
+                        afterImage: editAfterImg.trim(),
+                        description: editDesc.trim(),
+                        highlights: editHighlights.split(',').map((s) => s.trim()).filter(Boolean),
+                      });
+                      setEditingItem(null);
+                    }}
+                    className="bg-white p-6 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 space-y-4 my-auto max-h-[90vh] overflow-y-auto"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h4 className="font-bold text-sm text-slate-900">시공 사례 수정</h4>
+                      <button
+                        type="button"
+                        onClick={() => setEditingItem(null)}
+                        className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">제목 *</label>
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">카테고리 *</label>
+                        <select
+                          value={editCategory}
+                          onChange={(e) => setEditCategory(e.target.value as PortfolioItem['category'])}
+                          className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="에어컨 정밀세척">에어컨 정밀세척</option>
+                          <option value="업소용 제빙기">업소용 제빙기</option>
+                          <option value="시스템/기업">시스템/기업</option>
+                          <option value="가정용 토탈케어">가정용 토탈케어</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">시공 장소/지역</label>
+                        <input
+                          type="text"
+                          value={editLocation}
+                          onChange={(e) => setEditLocation(e.target.value)}
+                          className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">핵심 포인트 (쉼표 구분)</label>
+                        <input
+                          type="text"
+                          value={editHighlights}
+                          onChange={(e) => setEditHighlights(e.target.value)}
+                          className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-semibold text-slate-700">Before 이미지 (직접 첨부 또는 URL)</label>
+                          {editBeforeImg && (
+                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                              <img src={editBeforeImg} alt="Before preview" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, setEditBeforeImg)}
+                          className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer mb-2"
+                        />
+                        <input
+                          type="text"
+                          placeholder="또는 이미지 URL 입력"
+                          value={editBeforeImg}
+                          onChange={(e) => setEditBeforeImg(e.target.value)}
+                          className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-semibold text-slate-700">After 이미지 (직접 첨부 또는 URL)</label>
+                          {editAfterImg && (
+                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                              <img src={editAfterImg} alt="After preview" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, setEditAfterImg)}
+                          className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer mb-2"
+                        />
+                        <input
+                          type="text"
+                          placeholder="또는 이미지 URL 입력"
+                          value={editAfterImg}
+                          onChange={(e) => setEditAfterImg(e.target.value)}
+                          className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">상세 설명</label>
+                      <textarea
+                        rows={3}
+                        value={editDesc}
+                        onChange={(e) => setEditDesc(e.target.value)}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingItem(null)}
+                        className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200"
+                      >
+                        취소
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 text-xs font-bold text-white rounded-xl shadow-sm"
+                        style={{ backgroundColor: config.primaryColor }}
+                      >
+                        수정 완료
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </div>
           )}
 
@@ -595,6 +892,18 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">관리자 모드 비밀번호 변경</label>
+                <input
+                  type="text"
+                  value={formConfig.adminPassword || '1234'}
+                  onChange={(e) => handleConfigChange('adminPassword', e.target.value)}
+                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  placeholder="1234"
+                />
+                <span className="text-[11px] text-slate-400 mt-0.5 block">관리자 모드 접속 시 요구되는 비밀번호를 변경할 수 있습니다.</span>
               </div>
 
             </div>

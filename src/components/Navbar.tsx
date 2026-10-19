@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, MessageCircle, CheckCircle2, Settings, Menu, X, Award } from 'lucide-react';
 import { SiteConfig } from '../types';
+import { IMAGES } from '../assets/images';
 
 interface NavbarProps {
   config: SiteConfig;
@@ -60,11 +61,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-8 h-18 flex items-center justify-between gap-8">
         {/* Zone 1: Single text element wordmark */}
         <a href="#" className="flex items-center gap-2.5 shrink-0 group">
-          <div 
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md transition-transform group-hover:scale-105"
-            style={{ backgroundColor: config.primaryColor }}
-          >
-            D
+          <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-md transition-transform group-hover:scale-105 border border-slate-100">
+            <img src={IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-extrabold tracking-tight text-slate-900 whitespace-nowrap">

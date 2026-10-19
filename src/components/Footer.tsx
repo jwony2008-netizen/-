@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, MessageCircle, Carrot, Settings } from 'lucide-react';
 import { SiteConfig } from '../types';
+import { IMAGES } from '../assets/images';
 
 interface FooterProps {
   config: SiteConfig;
@@ -51,11 +52,8 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenQuote, onOpenAdmin
           {/* Brand & Mission (5 Cols) */}
           <div className="md:col-span-5 space-y-3">
             <div className="flex items-center gap-2 text-white font-bold text-base">
-              <div 
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ backgroundColor: config.primaryColor }}
-              >
-                D
+              <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow border border-slate-800">
+                <img src={IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
               </div>
               <span>{config.brandName}</span>
             </div>

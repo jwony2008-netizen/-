@@ -167,6 +167,10 @@ export default function App() {
     setPortfolio((prev) => [newItem, ...prev]);
   };
 
+  const handleUpdatePortfolio = (updatedItem: PortfolioItem) => {
+    setPortfolio((prev) => prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)));
+  };
+
   const handleDeletePortfolio = (id: string) => {
     setPortfolio((prev) => prev.filter((item) => item.id !== id));
   };
@@ -284,6 +288,7 @@ export default function App() {
         onResetConfig={handleResetConfig}
         portfolio={portfolio}
         onAddPortfolio={handleAddPortfolio}
+        onUpdatePortfolio={handleUpdatePortfolio}
         onDeletePortfolio={handleDeletePortfolio}
         quotes={quotes}
         onUpdateQuoteStatus={handleUpdateQuoteStatus}
