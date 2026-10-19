@@ -1,76 +1,55 @@
 import { SiteConfig, PortfolioItem, ServiceDetail, ReviewItem, QuoteRequest } from '../types';
 import { IMAGES } from '../assets/images';
+import savedState from './savedState.json';
 
-export const initialSiteConfig: SiteConfig = {
+export const initialUpdatedAt: number = savedState.updatedAt || 1792422753606;
+
+export const defaultBaseSiteConfig: SiteConfig = {
   brandName: '도지클린시스템',
   heroBadge: '전북 전지역 에어컨 정밀 세척 & 제빙기 분해 살균 종합 케어',
   heroTitle: '보이지 않는 곳까지 깨끗하게, 에어컨 & 제빙기 케어의 표준',
   heroSubtitle: '단순 겉면 필터 청소가 아닌 송풍팬·열교환기·드레인판까지 꼼꼼한 정밀 분해 세척. 제빙기 130℃ 초고온 스팀 살균과 에어컨 고압 제트 세척으로 안심 호흡과 깨끗한 얼음을 약속합니다.',
   primaryPhone: '0507-1338-4626',
-  secondaryPhone: '010-4821-9932',
+  secondaryPhone: '0507-1338-4626',
   kakaoUrl: 'http://pf.kakao.com/_xexbJxeG/friend',
   daangnUrl: 'https://daangn.com/kr/local-profile/도지홈케어-전북-1440766/?',
   naverBlogUrl: 'https://blog.naver.com/dogecare',
-  instagramUrl: '',
+  instagramUrl: 'https://instagram.com',
   operatingHours: '연중무휴 08:00 - 21:00 (야간/주말 작업 가능)',
   companyAddress: '전북 익산시 서동로 151-7',
-  ceoName: '김도지',
-  businessNumber: '214-88-90123',
+  ceoName: '정원영',
+  businessNumber: '688-13-01885',
   primaryColor: '#0062FF',
   fontMode: 'pretendard',
   seoTitle: '도지클린시스템 - 전북 익산·전주·군산 에어컨 & 제빙기 정밀 분해 살균세척',
   seoDescription: '전북 익산시 서동로 151-7 위치. 에어컨 정밀 분해 세척, 업소용·가정용 제빙기 고온스팀 살균, 카드결제 및 현금영수증 발행 가능, 30일 무상 A/S 도지클린시스템',
   formspreeEndpoint: 'https://formspree.io/f/xqpejjvp',
-  adminPassword: '1234',
-  logoUrl: ''
+  adminPassword: '1496912',
+  logoUrl: '/uploads/logo-6b251e8cdce6.png'
 };
 
-export const initialPortfolio: PortfolioItem[] = [
-  {
-    id: 'case-1',
-    title: '익산 영등동 대형 베이커리 카페 호시자키 150kg 제빙기 분해 살균',
-    category: '업소용 제빙기',
-    location: '전북 익산시 영등동',
-    beforeImage: IMAGES.icemakerBefore,
-    afterImage: IMAGES.icemakerAfter,
-    description: '물때와 석회 스케일, 물받이 오염을 전용 식품등급 세척액과 130도 고압 스팀으로 철저히 살균. 투명하고 단단한 얼음 품질 회복.',
-    highlights: ['전극봉 및 수중펌프 분해', '식품첨가물 구연산 스케일링', '130℃ 초고온 스팀 노즐 살균'],
-    date: '2026.10.15'
-  },
-  {
-    id: 'case-2',
-    title: '전주 신시가지 메디컬 빌딩 천장형 4Way 시스템 에어컨 12대 정기 케어',
-    category: '에어컨 정밀세척',
-    location: '전북 전주시 완산구 효자동',
-    beforeImage: IMAGES.acBefore,
-    afterImage: IMAGES.acAfter,
-    description: '병원 진료실 집중 냉난방으로 드레인판에 누적된 슬러지와 송풍팬 곰팡이를 정밀 고압 제트 세척. 쾌적한 실내 공기질 확보.',
-    highlights: ['진료실 보양 비닐 작업', '친환경 알루미늄 핀 전용 세제', '부품 정밀 송풍 건조 마감'],
-    date: '2026.10.12'
-  },
-  {
-    id: 'case-3',
-    title: '익산 모현동 현대아이파크 34평 가정용 스탠드+벽걸이 2in1 정밀 세척',
-    category: '가정용 토탈케어',
-    location: '전북 익산시 모현동',
-    beforeImage: IMAGES.acBefore,
-    afterImage: IMAGES.acAfter,
-    description: '영유아가 거주하는 가정으로 유기화학 물질이 없는 미 환경청(EPA) 인증 친환경 세척제만 사용하여 송풍팬 깊은 곳의 미세 오염까지 고압 물세척.',
-    highlights: ['영유아 안심 친환경 약품 사용', '정밀 분해 부품 물세척', '정밀 송풍 및 잔여 수분 건조'],
-    date: '2026.10.08'
-  },
-  {
-    id: 'case-4',
-    title: '군산 수송동 디저트 카페 카이저(KAISER) 공랭식 제빙기 케어',
-    category: '업소용 제빙기',
-    location: '전북 군산시 수송동',
-    beforeImage: IMAGES.icemakerBefore,
-    afterImage: IMAGES.icemakerAfter,
-    description: '얼음 생성 속도 저하 및 냄새 개선을 위해 출동. 급수 밸브 슬러지 제거 및 130℃ 스팀 에바포레이터 냉판 특수 세척으로 본래 성능 복원.',
-    highlights: ['맞춤 시간대 방문 시공', '130℃ 스팀 배관 살균', '얼음 생성 효율 복원'],
-    date: '2026.10.03'
-  }
-];
+export const initialSiteConfig: SiteConfig = {
+  ...defaultBaseSiteConfig,
+  ...(savedState.config as SiteConfig),
+};
+
+export const initialPortfolio: PortfolioItem[] = (
+  Array.isArray(savedState.portfolio) && savedState.portfolio.length > 0
+    ? savedState.portfolio
+    : [
+        {
+          id: 'case-1',
+          title: '익산 영등동 대형 베이커리 카페 호시자키 150kg 제빙기 분해 살균',
+          category: '업소용 제빙기',
+          location: '전북 익산시 영등동',
+          beforeImage: IMAGES.icemakerBefore,
+          afterImage: IMAGES.icemakerAfter,
+          description: '물때와 석회 스케일, 물받이 오염을 전용 식품등급 세척액과 130도 고압 스팀으로 철저히 살균. 투명하고 단단한 얼음 품질 회복.',
+          highlights: ['전극봉 및 수중펌프 분해', '식품첨가물 구연산 스케일링', '130℃ 초고온 스팀 노즐 살균'],
+          date: '2026.10.15'
+        }
+      ]
+) as PortfolioItem[];
 
 export const initialServices: ServiceDetail[] = [
   {

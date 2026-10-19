@@ -14,7 +14,8 @@ import {
   initialPortfolio, 
   initialServices, 
   initialReviews, 
-  initialQuotes 
+  initialQuotes,
+  initialUpdatedAt
 } from './data/initialData';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -29,21 +30,13 @@ import { Phone, ArrowUp } from 'lucide-react';
 import { loadAppState, saveAppState, clearAppState } from './utils/storage';
 
 export default function App() {
-  // 1. Persistent State initialized from LocalStorage (with async hydration from Server & IndexedDB)
+  // 1. Persistent State initialized from Baked State / LocalStorage (with async hydration from Server & IndexedDB)
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
+      const lsUpdatedAt = Number(localStorage.getItem('doge_clean_updated_at') || '0');
       const saved = localStorage.getItem('doge_clean_config_v7');
-      if (saved) return { ...initialSiteConfig, ...JSON.parse(saved) };
-      const prevV6 = localStorage.getItem('doge_clean_config_v6');
-      if (prevV6) {
-        const parsed = JSON.parse(prevV6);
-        return {
-          ...initialSiteConfig,
-          ...parsed,
-          kakaoUrl: initialSiteConfig.kakaoUrl,
-          daangnUrl: initialSiteConfig.daangnUrl,
-          naverBlogUrl: initialSiteConfig.naverBlogUrl,
-        };
+      if (saved && lsUpdatedAt >= initialUpdatedAt) {
+        return { ...initialSiteConfig, ...JSON.parse(saved) };
       }
       return initialSiteConfig;
     } catch {
@@ -53,8 +46,11 @@ export default function App() {
 
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(() => {
     try {
+      const lsUpdatedAt = Number(localStorage.getItem('doge_clean_updated_at') || '0');
       const saved = localStorage.getItem('doge_clean_portfolio_v6');
-      if (saved) return JSON.parse(saved);
+      if (saved && lsUpdatedAt >= initialUpdatedAt) {
+        return JSON.parse(saved);
+      }
       return initialPortfolio;
     } catch {
       return initialPortfolio;
@@ -63,8 +59,11 @@ export default function App() {
 
   const [quotes, setQuotes] = useState<QuoteRequest[]>(() => {
     try {
+      const lsUpdatedAt = Number(localStorage.getItem('doge_clean_updated_at') || '0');
       const saved = localStorage.getItem('doge_clean_quotes_v6');
-      if (saved) return JSON.parse(saved);
+      if (saved && lsUpdatedAt >= initialUpdatedAt) {
+        return JSON.parse(saved);
+      }
       return initialQuotes;
     } catch {
       return initialQuotes;

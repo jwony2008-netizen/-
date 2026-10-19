@@ -140,11 +140,18 @@ export async function saveAppState(state: {
   await saveToIndexedDB(payload);
 
   try {
-    await fetch('/api/state', {
+    const res = await fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.state) {
+        saveToLocalStorage(data.state);
+        await saveToIndexedDB(data.state);
+      }
+    }
   } catch (e) {
     console.warn('Server state sync skipped:', e);
   }
@@ -153,7 +160,7 @@ export async function saveAppState(state: {
 export async function loadAppState(): Promise<PersistedAppState | null> {
   const candidates: PersistedAppState[] = [];
 
-  // 1. Check Server
+  // 1. Check Server API
   try {
     const res = await fetch('/api/state', { cache: 'no-store' });
     if (res.ok) {
@@ -168,16 +175,34 @@ export async function loadAppState(): Promise<PersistedAppState | null> {
       }
     }
   } catch {
-    // Server endpoint might not be reachable yet
+    // Server endpoint might not be reachable in static hosting
   }
 
-  // 2. Check IndexedDB
+  // 2. Check Static /site-state.json in public folder
+  try {
+    const staticRes = await fetch('/site-state.json', { cache: 'no-store' });
+    if (staticRes.ok) {
+      const staticData = await staticRes.json();
+      if (staticData && staticData.portfolio && staticData.config) {
+        candidates.push({
+          config: staticData.config,
+          portfolio: staticData.portfolio,
+          quotes: staticData.quotes || [],
+          updatedAt: staticData.updatedAt || 1,
+        });
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 3. Check IndexedDB
   const idbData = await loadFromIndexedDB();
   if (idbData && idbData.portfolio && idbData.config) {
     candidates.push(idbData);
   }
 
-  // 3. Check LocalStorage
+  // 4. Check LocalStorage
   const lsData = loadFromLocalStorage();
   if (lsData.config && lsData.portfolio) {
     candidates.push({

@@ -271,7 +271,7 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
         )}
 
         {/* Gallery Thumbnails List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {filteredItems.map((item) => (
             <button
               key={item.id}
@@ -279,26 +279,27 @@ export const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({
                 setActiveItem(item);
                 setSliderPosition(50);
               }}
-              className={`text-left p-3.5 rounded-2xl border transition-all flex flex-col justify-between group ${
+              className={`text-left p-3.5 rounded-2xl border transition-all duration-300 ease-out transform hover:scale-[1.03] hover:-translate-y-1 flex flex-col justify-between group ${
                 currentItem.id === item.id
-                  ? 'bg-blue-50/50 border-blue-500 shadow-md ring-2 ring-blue-500/20'
-                  : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                  ? 'bg-blue-50/60 border-blue-500 shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20 hover:shadow-xl hover:shadow-blue-500/15'
+                  : 'bg-white border-slate-200/90 shadow-sm hover:border-blue-300/80 hover:shadow-xl hover:shadow-slate-900/10'
               }`}
             >
-              <div className="aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 mb-3 relative">
+              <div className="aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 mb-3 relative shadow-inner">
                 <img
                   src={item.afterImage}
                   onError={(e) => { e.currentTarget.src = '/images/ac_detail.jpg'; }}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                   referrerPolicy="no-referrer"
                 />
-                <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded backdrop-blur-sm">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded backdrop-blur-sm shadow-sm">
                   {item.category}
                 </span>
               </div>
               <div>
-                <h4 className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                <h4 className="text-xs font-bold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors duration-200">
                   {item.title}
                 </h4>
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
