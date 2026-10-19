@@ -4,18 +4,19 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  SiteConfig, 
-  PortfolioItem, 
-  QuoteRequest 
+import {
+  SiteConfig,
+  PortfolioItem,
+  QuoteRequest,
+  ServiceDetail,
 } from './types';
-import { 
-  initialSiteConfig, 
-  initialPortfolio, 
-  initialServices, 
-  initialReviews, 
+import {
+  initialSiteConfig,
+  initialPortfolio,
+  initialServices,
+  initialReviews,
   initialQuotes,
-  initialUpdatedAt
+  initialUpdatedAt,
 } from './data/initialData';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -25,12 +26,24 @@ import { ProcessSection } from './components/ProcessSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { QuoteModal } from './components/QuoteModal';
 import { AdminModal } from './components/AdminModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
+import { AdminEditBar } from './components/AdminEditBar';
 import { Footer } from './components/Footer';
 import { Phone, ArrowUp } from 'lucide-react';
 import { loadAppState, saveAppState, clearAppState } from './utils/storage';
+import {
+  auth,
+  onAuthStateChanged,
+  signOut,
+  User,
+  loadSiteDataFromFirestore,
+  subscribeToSiteData,
+  saveAllSiteDataToFirestore,
+  removePortfolioDocFromFirestore,
+} from './firebase';
 
 export default function App() {
-  // 1. Persistent State initialized from Baked State / LocalStorage (with async hydration from Server & IndexedDB)
+  // 1. Default Fallback State (shown immediately and used when Firestore is empty)
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
       const lsUpdatedAt = Number(localStorage.getItem('doge_clean_updated_at') || '0');
@@ -41,6 +54,19 @@ export default function App() {
       return initialSiteConfig;
     } catch {
       return initialSiteConfig;
+    }
+  });
+
+  const [services, setServices] = useState<ServiceDetail[]>(() => {
+    try {
+      const saved = localStorage.getItem('doge_clean_services_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return initialServices;
+    } catch {
+      return initialServices;
     }
   });
 
@@ -70,28 +96,98 @@ export default function App() {
     }
   });
 
-  const isHydratedRef = useRef(false);
+  // Firebase Auth & Real-time Admin Mode State
+  const [adminUser, setAdminUser] = useState<User | null>(null);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSavingFirestore, setIsSavingFirestore] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
-  // Load persisted data from Server / IndexedDB / LocalStorage on mount
+  const isHydratedRef = useRef(false);
+  const isEditingDirtyRef = useRef(false);
+
+  const showSaveToast = (msg: string) => {
+    setSaveMessage(msg);
+    setTimeout(() => setSaveMessage(''), 4000);
+  };
+
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAdminUser(user);
+      if (user) {
+        setIsInlineEditing(true);
+      } else {
+        setIsInlineEditing(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Load initial data from Firestore (with Fallback to existing default content if DB is empty)
   useEffect(() => {
     let mounted = true;
-    loadAppState().then((loaded) => {
-      if (!mounted) return;
-      if (loaded) {
-        if (loaded.config) {
-          setConfig((prev) => ({ ...prev, ...loaded.config }));
+
+    async function hydrateAll() {
+      // First load local/server fallback state
+      try {
+        const localLoaded = await loadAppState();
+        if (mounted && localLoaded) {
+          if (localLoaded.config) {
+            setConfig((prev) => ({ ...prev, ...localLoaded.config }));
+          }
+          if (Array.isArray(localLoaded.services) && localLoaded.services.length > 0) {
+            setServices(localLoaded.services);
+          }
+          if (Array.isArray(localLoaded.portfolio) && localLoaded.portfolio.length > 0) {
+            setPortfolio(localLoaded.portfolio);
+          }
+          if (Array.isArray(localLoaded.quotes)) {
+            setQuotes(localLoaded.quotes);
+          }
         }
-        if (Array.isArray(loaded.portfolio) && loaded.portfolio.length > 0) {
-          setPortfolio(loaded.portfolio);
+      } catch {
+        // Ignore local fallback errors
+      }
+
+      // Next load latest data from Firestore (overrides fallback if Firestore has saved data)
+      try {
+        const firestoreData = await loadSiteDataFromFirestore();
+        if (mounted && firestoreData) {
+          setConfig((prev) => ({ ...prev, ...firestoreData.config }));
+          if (firestoreData.services && firestoreData.services.length > 0) {
+            setServices(firestoreData.services);
+          }
+          if (firestoreData.portfolio && firestoreData.portfolio.length > 0) {
+            setPortfolio(firestoreData.portfolio);
+          }
         }
-        if (Array.isArray(loaded.quotes)) {
-          setQuotes(loaded.quotes);
+      } catch (err) {
+        console.warn('Firestore initial fetch fallback used:', err);
+      } finally {
+        if (mounted) {
+          isHydratedRef.current = true;
         }
       }
-      isHydratedRef.current = true;
+    }
+
+    hydrateAll();
+
+    // Real-time Firestore listener so visitors see live updates immediately
+    const unsubscribeSnapshot = subscribeToSiteData((liveData) => {
+      if (!mounted || isEditingDirtyRef.current) return;
+      setConfig((prev) => ({ ...prev, ...liveData.config }));
+      if (liveData.services && liveData.services.length > 0) {
+        setServices(liveData.services);
+      }
+      if (liveData.portfolio && liveData.portfolio.length > 0) {
+        setPortfolio(liveData.portfolio);
+      }
     });
+
     return () => {
       mounted = false;
+      unsubscribeSnapshot();
     };
   }, []);
 
@@ -102,7 +198,7 @@ export default function App() {
   const [prefillPhone, setPrefillPhone] = useState('');
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Sync Document Meta & Persist after hydration
+  // Sync Document Meta
   useEffect(() => {
     if (config.seoTitle) {
       document.title = config.seoTitle;
@@ -113,25 +209,101 @@ export default function App() {
     }
   }, [config]);
 
+  // Persist local mirror whenever state changes
   useEffect(() => {
     if (!isHydratedRef.current) return;
-    saveAppState({ config, portfolio, quotes });
-  }, [config, portfolio, quotes]);
+    saveAppState({ config, portfolio, quotes, services });
+  }, [config, portfolio, quotes, services]);
 
   // Scroll listener for Top button
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 400) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      setShowScrollTop(window.scrollY > 400);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handlers with immediate persistence
+  // Save current state to Firestore
+  const handleSaveAllToFirestore = async (overrideState?: {
+    config?: SiteConfig;
+    services?: ServiceDetail[];
+    portfolio?: PortfolioItem[];
+  }) => {
+    const targetConfig = overrideState?.config || config;
+    const targetServices = overrideState?.services || services;
+    const targetPortfolio = overrideState?.portfolio || portfolio;
+
+    saveAppState({
+      config: targetConfig,
+      portfolio: targetPortfolio,
+      quotes,
+      services: targetServices,
+    });
+
+    if (!auth.currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    setIsSavingFirestore(true);
+    try {
+      await saveAllSiteDataToFirestore({
+        config: targetConfig,
+        services: targetServices,
+        portfolio: targetPortfolio,
+      });
+      isEditingDirtyRef.current = false;
+      showSaveToast('Firestore 클라우드에 실시간 저장되었습니다!');
+    } catch (err) {
+      console.error('Firestore save error:', err);
+      showSaveToast('저장 중 권한 또는 네트워크 오류가 발생했습니다.');
+    } finally {
+      setIsSavingFirestore(false);
+    }
+  };
+
+  // Inline Config Partial Update
+  const handleInlineUpdateConfig = (partial: Partial<SiteConfig>) => {
+    isEditingDirtyRef.current = true;
+    setConfig((prev) => ({ ...prev, ...partial }));
+  };
+
+  // Inline Services Update
+  const handleAddService = (newService: ServiceDetail) => {
+    isEditingDirtyRef.current = true;
+    setServices((prev) => {
+      const next = [...prev, newService];
+      if (auth.currentUser) {
+        handleSaveAllToFirestore({ services: next });
+      }
+      return next;
+    });
+  };
+
+  const handleUpdateService = (updatedService: ServiceDetail) => {
+    isEditingDirtyRef.current = true;
+    setServices((prev) => {
+      const next = prev.map((s) => (s.id === updatedService.id ? updatedService : s));
+      if (auth.currentUser) {
+        handleSaveAllToFirestore({ services: next });
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteService = (id: string) => {
+    isEditingDirtyRef.current = true;
+    setServices((prev) => {
+      const next = prev.filter((s) => s.id !== id);
+      if (auth.currentUser) {
+        handleSaveAllToFirestore({ services: next });
+      }
+      return next;
+    });
+  };
+
+  // Quote Handlers
   const handleOpenQuote = (service?: string, phone?: string) => {
     setPrefillService(service || '');
     setPrefillPhone(phone || '');
@@ -141,7 +313,7 @@ export default function App() {
   const handleAddQuote = (newQuote: QuoteRequest) => {
     setQuotes((prev) => {
       const next = [newQuote, ...prev];
-      saveAppState({ config, portfolio, quotes: next });
+      saveAppState({ config, portfolio, quotes: next, services });
       return next;
     });
   };
@@ -149,7 +321,7 @@ export default function App() {
   const handleUpdateQuoteStatus = (id: string, status: QuoteRequest['status']) => {
     setQuotes((prev) => {
       const next = prev.map((q) => (q.id === id ? { ...q, status } : q));
-      saveAppState({ config, portfolio, quotes: next });
+      saveAppState({ config, portfolio, quotes: next, services });
       return next;
     });
   };
@@ -157,50 +329,86 @@ export default function App() {
   const handleDeleteQuote = (id: string) => {
     setQuotes((prev) => {
       const next = prev.filter((q) => q.id !== id);
-      saveAppState({ config, portfolio, quotes: next });
+      saveAppState({ config, portfolio, quotes: next, services });
       return next;
     });
   };
 
   const handleClearQuotes = () => {
     setQuotes([]);
-    saveAppState({ config, portfolio, quotes: [] });
+    saveAppState({ config, portfolio, quotes: [], services });
   };
 
+  // AdminModal & Inline Portfolio Handlers (auto-sync with Firestore when logged in)
   const handleSaveConfig = (updatedConfig: SiteConfig) => {
     setConfig(updatedConfig);
-    saveAppState({ config: updatedConfig, portfolio, quotes });
+    if (auth.currentUser) {
+      handleSaveAllToFirestore({ config: updatedConfig });
+    } else {
+      saveAppState({ config: updatedConfig, portfolio, quotes, services });
+    }
   };
 
   const handleResetConfig = () => {
     setConfig(initialSiteConfig);
+    setServices(initialServices);
     setPortfolio(initialPortfolio);
     setQuotes(initialQuotes);
     clearAppState();
+    if (auth.currentUser) {
+      handleSaveAllToFirestore({
+        config: initialSiteConfig,
+        services: initialServices,
+        portfolio: initialPortfolio,
+      });
+    }
   };
 
   const handleAddPortfolio = (newItem: PortfolioItem) => {
+    isEditingDirtyRef.current = true;
     setPortfolio((prev) => {
       const next = [newItem, ...prev];
-      saveAppState({ config, portfolio: next, quotes });
+      if (auth.currentUser) {
+        handleSaveAllToFirestore({ portfolio: next });
+      } else {
+        saveAppState({ config, portfolio: next, quotes, services });
+      }
       return next;
     });
   };
 
   const handleUpdatePortfolio = (updatedItem: PortfolioItem) => {
+    isEditingDirtyRef.current = true;
     setPortfolio((prev) => {
       const next = prev.map((item) => (item.id === updatedItem.id ? updatedItem : item));
-      saveAppState({ config, portfolio: next, quotes });
+      if (auth.currentUser) {
+        handleSaveAllToFirestore({ portfolio: next });
+      } else {
+        saveAppState({ config, portfolio: next, quotes, services });
+      }
       return next;
     });
   };
 
   const handleDeletePortfolio = (id: string) => {
+    isEditingDirtyRef.current = true;
     setPortfolio((prev) => {
       const next = prev.filter((item) => item.id !== id);
-      saveAppState({ config, portfolio: next, quotes });
+      if (auth.currentUser) {
+        removePortfolioDocFromFirestore(id);
+        handleSaveAllToFirestore({ portfolio: next });
+      } else {
+        saveAppState({ config, portfolio: next, quotes, services });
+      }
       return next;
     });
+  };
+
+  const handleAdminLogout = async () => {
+    await signOut(auth);
+    setAdminUser(null);
+    setIsInlineEditing(false);
+    showSaveToast('관리자 로그아웃 되었습니다.');
   };
 
   const scrollToTop = () => {
@@ -208,46 +416,83 @@ export default function App() {
   };
 
   const unresolvedQuotesCount = quotes.filter((q) => q.status === '신규접수').length;
+  const activeAdminInlineEditing = Boolean(adminUser && isInlineEditing);
 
   return (
-    <div className={`min-h-screen flex flex-col bg-white text-slate-900 ${config.fontMode === 'clean' ? 'font-sans' : ''}`}>
-      
+    <div
+      className={`min-h-screen flex flex-col bg-white text-slate-900 ${
+        config.fontMode === 'clean' ? 'font-sans' : ''
+      }`}
+    >
+      {/* Top Sticky Admin Editing Toolbar (Visible when logged in via Firebase Auth) */}
+      {adminUser && (
+        <AdminEditBar
+          user={adminUser}
+          isInlineEditing={isInlineEditing}
+          onToggleInlineEditing={() => setIsInlineEditing((prev) => !prev)}
+          onSaveAll={() => handleSaveAllToFirestore()}
+          isSaving={isSavingFirestore}
+          saveMessage={saveMessage}
+          onOpenDashboard={() => setIsAdminModalOpen(true)}
+          onLogout={handleAdminLogout}
+        />
+      )}
+
       {/* Navigation Header */}
       <Navbar
         config={config}
         onOpenQuote={() => handleOpenQuote()}
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
+        onOpenAdmin={() => {
+          if (adminUser) {
+            setIsAdminModalOpen(true);
+          } else {
+            setIsLoginModalOpen(true);
+          }
+        }}
         isAdminOpen={isAdminModalOpen}
         unresolvedQuotesCount={unresolvedQuotesCount}
       />
 
       {/* Main Content Sections */}
       <main className="flex-1">
-        {/* 1. Hero Section */}
+        {/* 1. Hero Section (with inline admin editing) */}
         <Hero
           config={config}
           onOpenQuoteWithPrefill={(service, phone) => handleOpenQuote(service, phone)}
+          isAdminEditing={activeAdminInlineEditing}
+          onUpdateConfig={handleInlineUpdateConfig}
+          onSaveToFirestore={() => handleSaveAllToFirestore()}
+          isSaving={isSavingFirestore}
         />
 
-        {/* 2. Services & Pricing Bento Grid */}
+        {/* 2. Services & Pricing Bento Grid (with inline price card add/edit/delete) */}
         <ServicesSection
-          services={initialServices}
+          services={services}
           config={config}
           onSelectService={(serviceTitle) => handleOpenQuote(serviceTitle)}
+          isAdminEditing={activeAdminInlineEditing}
+          onAddService={handleAddService}
+          onUpdateService={handleUpdateService}
+          onDeleteService={handleDeleteService}
+          onSaveToFirestore={() => handleSaveAllToFirestore()}
+          isSaving={isSavingFirestore}
         />
 
-        {/* 3. Interactive Before & After Portfolio Gallery */}
+        {/* 3. Interactive Before & After Portfolio Gallery (with inline photo upload <=800px Base64) */}
         <BeforeAfterGallery
           portfolio={portfolio}
           config={config}
           onOpenQuote={(caseTitle) => handleOpenQuote(caseTitle)}
+          isAdminEditing={activeAdminInlineEditing}
+          onAddPortfolio={handleAddPortfolio}
+          onUpdatePortfolio={handleUpdatePortfolio}
+          onDeletePortfolio={handleDeletePortfolio}
+          onSaveToFirestore={() => handleSaveAllToFirestore()}
+          isSaving={isSavingFirestore}
         />
 
         {/* 4. 6-Stage Systematic Construction Process */}
-        <ProcessSection
-          config={config}
-          onOpenQuote={() => handleOpenQuote()}
-        />
+        <ProcessSection config={config} onOpenQuote={() => handleOpenQuote()} />
 
         {/* 5. Customer Reviews & FAQ */}
         <ReviewsSection
@@ -257,15 +502,25 @@ export default function App() {
         />
       </main>
 
-      {/* Footer */}
+      {/* Footer (with small '관리자 로그인' button at the bottom and inline contact editor) */}
       <Footer
         config={config}
         onOpenQuote={() => handleOpenQuote()}
         onOpenAdmin={() => setIsAdminModalOpen(true)}
+        adminUser={adminUser}
+        onOpenAdminLogin={() => setIsLoginModalOpen(true)}
+        onAdminLogout={handleAdminLogout}
+        isAdminEditing={activeAdminInlineEditing}
+        onUpdateConfig={handleInlineUpdateConfig}
+        onSaveToFirestore={() => handleSaveAllToFirestore()}
+        isSaving={isSavingFirestore}
       />
 
       {/* Floating Action Buttons (Sticky Quick Contacts & Top button) */}
-      <aside aria-label="빠른 상담 및 맨 위로 이동" className="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3 pointer-events-none">
+      <aside
+        aria-label="빠른 상담 및 맨 위로 이동"
+        className="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3 pointer-events-none"
+      >
         {showScrollTop && (
           <button
             onClick={scrollToTop}
@@ -307,7 +562,17 @@ export default function App() {
         onAddQuote={handleAddQuote}
       />
 
-      {/* Powerful Admin Dashboard Modal */}
+      {/* Firebase Auth Email/Password Admin Login Modal */}
+      <AdminLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={() => {
+          setIsInlineEditing(true);
+          showSaveToast('관리자 모드로 로그인되었습니다. 페이지에서 바로 수정 후 저장하세요!');
+        }}
+      />
+
+      {/* Full Admin Dashboard Modal (Logo/Theme, SEO, Quotes, Portfolio) */}
       <AdminModal
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
@@ -322,8 +587,9 @@ export default function App() {
         onUpdateQuoteStatus={handleUpdateQuoteStatus}
         onDeleteQuote={handleDeleteQuote}
         onClearQuotes={handleClearQuotes}
+        isFirebaseAuthenticated={Boolean(adminUser)}
+        onOpenFirebaseLogin={() => setIsLoginModalOpen(true)}
       />
-
     </div>
   );
 }

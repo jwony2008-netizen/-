@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
-import { Sparkles, CheckCircle2, ArrowRight, Zap, Award, UserCheck } from 'lucide-react';
+import { Sparkles, CheckCircle2, ArrowRight, Zap, Award, UserCheck, Edit3, Save } from 'lucide-react';
 import { SiteConfig } from '../types';
 import { IMAGES } from '../assets/images';
 
 interface HeroProps {
   config: SiteConfig;
   onOpenQuoteWithPrefill: (service: string, phone?: string) => void;
+  isAdminEditing?: boolean;
+  onUpdateConfig?: (partial: Partial<SiteConfig>) => void;
+  onSaveToFirestore?: () => Promise<void>;
+  isSaving?: boolean;
 }
 
-export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) => {
+export const Hero: React.FC<HeroProps> = ({
+  config,
+  onOpenQuoteWithPrefill,
+  isAdminEditing = false,
+  onUpdateConfig,
+  onSaveToFirestore,
+  isSaving = false,
+}) => {
   const [selectedService, setSelectedService] = useState('에어컨 정밀 분해 세척');
   const [phoneNumber, setPhoneNumber] = useState('');
 
@@ -20,7 +31,7 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/50 via-slate-50/30 to-white pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-slate-100">
       {/* Subtle background ambient blur */}
-      <div 
+      <div
         className="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-10 pointer-events-none"
         style={{ backgroundColor: config.primaryColor }}
       />
@@ -28,27 +39,100 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
           {/* Left Column: Value Proposition & Copy */}
           <div className="lg:col-span-7 flex flex-col justify-center">
-            {/* Top Quiet Kicker (Zero-pill text separator) */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-4 tracking-wide uppercase">
-              <span className="text-blue-600 font-bold">{config.brandName}</span>
-              <span aria-hidden="true">·</span>
-              <span>전문 엔지니어 직영 시공</span>
-              <span aria-hidden="true">·</span>
-              <span>전북 전 지역 (익산·전주·군산·완주 등) 신속 출동</span>
-            </div>
+            {isAdminEditing && onUpdateConfig ? (
+              <div className="mb-8 p-5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 shadow-lg space-y-3.5">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
+                  <span className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
+                    <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                    메인 안내 문구 & 대표 연락처 직접 편집
+                  </span>
+                  {onSaveToFirestore && (
+                    <button
+                      type="button"
+                      onClick={onSaveToFirestore}
+                      disabled={isSaving}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow flex items-center gap-1.5 hover:brightness-110 disabled:opacity-50"
+                      style={{ backgroundColor: config.primaryColor }}
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>{isSaving ? '저장 중...' : '저장하기'}</span>
+                    </button>
+                  )}
+                </div>
 
-            {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-black tracking-tight text-slate-900 leading-[1.2] lg:leading-[1.15] text-balance mb-5">
-              {config.heroTitle}
-            </h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">상호명</label>
+                    <input
+                      type="text"
+                      value={config.brandName}
+                      onChange={(e) => onUpdateConfig({ brandName: e.target.value })}
+                      className="w-full h-9 px-3 bg-white border border-amber-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">대표 상담 전화번호</label>
+                    <input
+                      type="text"
+                      value={config.primaryPhone}
+                      onChange={(e) => onUpdateConfig({ primaryPhone: e.target.value })}
+                      className="w-full h-9 px-3 bg-white border border-amber-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
 
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal mb-8 max-w-2xl text-pretty">
-              {config.heroSubtitle}
-            </p>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">상단 배지 안내 문구</label>
+                  <input
+                    type="text"
+                    value={config.heroBadge}
+                    onChange={(e) => onUpdateConfig({ heroBadge: e.target.value })}
+                    className="w-full h-9 px-3 bg-white border border-amber-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">메인 타이틀 문구</label>
+                  <input
+                    type="text"
+                    value={config.heroTitle}
+                    onChange={(e) => onUpdateConfig({ heroTitle: e.target.value })}
+                    className="w-full h-10 px-3 bg-white border border-amber-300 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">서브 안내 설명 문구</label>
+                  <textarea
+                    rows={3}
+                    value={config.heroSubtitle}
+                    onChange={(e) => onUpdateConfig({ heroSubtitle: e.target.value })}
+                    className="w-full p-3 bg-white border border-amber-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Top Quiet Kicker */}
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-4 tracking-wide uppercase">
+                  <span className="text-blue-600 font-bold">{config.brandName}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{config.heroBadge || '전문 엔지니어 직영 시공 · 전북 전 지역 신속 출동'}</span>
+                </div>
+
+                {/* Main Headline */}
+                <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-black tracking-tight text-slate-900 leading-[1.2] lg:leading-[1.15] text-balance mb-5">
+                  {config.heroTitle}
+                </h1>
+
+                {/* Subtitle */}
+                <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal mb-8 max-w-2xl text-pretty">
+                  {config.heroSubtitle}
+                </p>
+              </>
+            )}
 
             {/* Quick Consultation & Quote Input Bar */}
             <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/90 mb-8 max-w-2xl">
@@ -112,7 +196,6 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
                 <span className="text-xs font-semibold text-slate-700">30일 안심 A/S</span>
               </div>
             </div>
-
           </div>
 
           {/* Right Column: Visual Hero Asset */}
@@ -120,7 +203,9 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 bg-slate-100 group">
               <img
                 src={IMAGES.hero}
-                onError={(e) => { e.currentTarget.src = '/images/hero.jpg'; }}
+                onError={(e) => {
+                  e.currentTarget.src = '/images/hero.jpg';
+                }}
                 alt="도지클린시스템 전문 엔지니어의 에어컨 정밀 고압 제트 세척 현장"
                 className="w-full h-[400px] sm:h-[480px] lg:h-[520px] object-cover transition-transform duration-700 group-hover:scale-105"
                 referrerPolicy="no-referrer"
@@ -141,12 +226,13 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
                 </div>
                 <div className="text-right shrink-0">
                   <span className="text-xs text-slate-500 block">살균 소독율</span>
-                  <span className="text-base font-extrabold text-blue-600 tracking-tight font-mono tabular-nums">99.9%</span>
+                  <span className="text-base font-extrabold text-blue-600 tracking-tight font-mono tabular-nums">
+                    99.9%
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Claim-to-Proof Quantitative Strip */}
@@ -176,7 +262,6 @@ export const Hero: React.FC<HeroProps> = ({ config, onOpenQuoteWithPrefill }) =>
             <span className="text-xs font-semibold text-slate-500">무상 품질보증 A/S 보장</span>
           </div>
         </div>
-
       </div>
     </section>
   );

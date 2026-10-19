@@ -1,9 +1,10 @@
-import { SiteConfig, PortfolioItem, QuoteRequest } from '../types';
+import { SiteConfig, PortfolioItem, QuoteRequest, ServiceDetail } from '../types';
 
 export interface PersistedAppState {
   config: SiteConfig;
   portfolio: PortfolioItem[];
   quotes: QuoteRequest[];
+  services?: ServiceDetail[];
   updatedAt: number;
 }
 
@@ -14,6 +15,7 @@ const IDB_KEY = 'current';
 const LS_CONFIG_KEY = 'doge_clean_config_v7';
 const LS_PORTFOLIO_KEY = 'doge_clean_portfolio_v6';
 const LS_QUOTES_KEY = 'doge_clean_quotes_v6';
+const LS_SERVICES_KEY = 'doge_clean_services_v1';
 const LS_UPDATED_AT_KEY = 'doge_clean_updated_at';
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -102,12 +104,14 @@ export function loadFromLocalStorage(): Partial<PersistedAppState> {
     const configRaw = localStorage.getItem(LS_CONFIG_KEY) || localStorage.getItem('doge_clean_config_v6');
     const portfolioRaw = localStorage.getItem(LS_PORTFOLIO_KEY);
     const quotesRaw = localStorage.getItem(LS_QUOTES_KEY);
+    const servicesRaw = localStorage.getItem(LS_SERVICES_KEY);
     const updatedAtRaw = localStorage.getItem(LS_UPDATED_AT_KEY);
 
     return {
       config: configRaw ? JSON.parse(configRaw) : undefined,
       portfolio: portfolioRaw ? JSON.parse(portfolioRaw) : undefined,
       quotes: quotesRaw ? JSON.parse(quotesRaw) : undefined,
+      services: servicesRaw ? JSON.parse(servicesRaw) : undefined,
       updatedAt: updatedAtRaw ? Number(updatedAtRaw) : 0,
     };
   } catch {
@@ -120,9 +124,12 @@ export function saveToLocalStorage(state: PersistedAppState): void {
     localStorage.setItem(LS_CONFIG_KEY, JSON.stringify(state.config));
     localStorage.setItem(LS_PORTFOLIO_KEY, JSON.stringify(state.portfolio));
     localStorage.setItem(LS_QUOTES_KEY, JSON.stringify(state.quotes));
+    if (state.services) {
+      localStorage.setItem(LS_SERVICES_KEY, JSON.stringify(state.services));
+    }
     localStorage.setItem(LS_UPDATED_AT_KEY, String(state.updatedAt));
   } catch (e) {
-    console.warn('LocalStorage quota exceeded, relying on IndexedDB and Server storage:', e);
+    console.warn('LocalStorage quota exceeded, relying on Firestore and IndexedDB:', e);
   }
 }
 
@@ -130,6 +137,7 @@ export async function saveAppState(state: {
   config: SiteConfig;
   portfolio: PortfolioItem[];
   quotes: QuoteRequest[];
+  services?: ServiceDetail[];
 }): Promise<void> {
   const payload: PersistedAppState = {
     ...state,
@@ -140,20 +148,13 @@ export async function saveAppState(state: {
   await saveToIndexedDB(payload);
 
   try {
-    const res = await fetch('/api/state', {
+    await fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.state) {
-        saveToLocalStorage(data.state);
-        await saveToIndexedDB(data.state);
-      }
-    }
-  } catch (e) {
-    console.warn('Server state sync skipped:', e);
+  } catch {
+    // Server state sync optional when Firestore is primary
   }
 }
 
@@ -170,6 +171,7 @@ export async function loadAppState(): Promise<PersistedAppState | null> {
           config: serverData.config,
           portfolio: serverData.portfolio,
           quotes: serverData.quotes || [],
+          services: serverData.services,
           updatedAt: serverData.updatedAt || 1,
         });
       }
@@ -188,6 +190,7 @@ export async function loadAppState(): Promise<PersistedAppState | null> {
           config: staticData.config,
           portfolio: staticData.portfolio,
           quotes: staticData.quotes || [],
+          services: staticData.services,
           updatedAt: staticData.updatedAt || 1,
         });
       }
@@ -209,17 +212,16 @@ export async function loadAppState(): Promise<PersistedAppState | null> {
       config: lsData.config,
       portfolio: lsData.portfolio,
       quotes: lsData.quotes || [],
+      services: lsData.services,
       updatedAt: lsData.updatedAt || 1,
     });
   }
 
   if (candidates.length === 0) return null;
 
-  // Pick candidate with highest updatedAt
   candidates.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   const best = candidates[0];
 
-  // Ensure all layers are synced with the latest data
   saveToLocalStorage(best);
   await saveToIndexedDB(best);
 
@@ -232,6 +234,7 @@ export async function clearAppState(): Promise<void> {
     localStorage.removeItem('doge_clean_config_v6');
     localStorage.removeItem(LS_PORTFOLIO_KEY);
     localStorage.removeItem(LS_QUOTES_KEY);
+    localStorage.removeItem(LS_SERVICES_KEY);
     localStorage.removeItem(LS_UPDATED_AT_KEY);
   } catch {
     // ignore
@@ -245,16 +248,18 @@ export async function clearAppState(): Promise<void> {
 }
 
 /**
- * Compresses an uploaded image file so it loads fast and never exceeds storage limits.
+ * Automatically resizes an uploaded image in the browser to width <= 800px
+ * and compresses it as WebP or JPEG Base64 data URL so it can be stored directly
+ * inside Firestore documents without using Firebase Storage.
  */
 export function compressImageFile(
   file: File,
   options: { maxWidth?: number; maxHeight?: number; quality?: number; preserveAlpha?: boolean } = {}
 ): Promise<string> {
   const {
-    maxWidth = 1280,
-    maxHeight = 1280,
-    quality = 0.82,
+    maxWidth = 800,
+    maxHeight = 800,
+    quality = 0.78,
     preserveAlpha = false,
   } = options;
 
@@ -265,12 +270,6 @@ export function compressImageFile(
       const dataUrl = event.target?.result as string;
       if (!dataUrl) {
         reject(new Error('이미지 데이터가 비어 있습니다.'));
-        return;
-      }
-
-      // SVG or GIF: return directly without canvas rasterization
-      if (file.type === 'image/svg+xml' || file.type === 'image/gif') {
-        resolve(dataUrl);
         return;
       }
 
@@ -293,16 +292,24 @@ export function compressImageFile(
           return;
         }
 
-        const isPngOrAlpha = preserveAlpha || file.type === 'image/png' || file.type === 'image/webp';
-        if (!isPngOrAlpha) {
+        if (!preserveAlpha) {
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, width, height);
         }
 
         ctx.drawImage(img, 0, 0, width, height);
 
-        const outputType = preserveAlpha && file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-        const compressed = canvas.toDataURL(outputType, quality);
+        // Try WebP first (supports both alpha and high compression), fallback to JPEG
+        let compressed = canvas.toDataURL('image/webp', quality);
+        if (!compressed.startsWith('data:image/webp')) {
+          compressed = canvas.toDataURL(preserveAlpha ? 'image/png' : 'image/jpeg', quality);
+        }
+
+        // Ensure Base64 length stays safely below 400KB for Firestore document storage
+        if (compressed.length > 380000) {
+          compressed = canvas.toDataURL('image/jpeg', 0.62);
+        }
+
         resolve(compressed);
       };
       img.src = dataUrl;

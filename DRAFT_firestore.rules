@@ -1,0 +1,240 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net (Default-Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'jwony2008@gmail.com' && request.auth.token.email_verified == true)
+      );
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'createdAt']) &&
+        data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.uid == request.auth.uid &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidSiteContent(data) {
+      return data.keys().hasAll([
+        'brandName', 'heroBadge', 'heroTitle', 'heroSubtitle',
+        'primaryPhone', 'secondaryPhone', 'kakaoUrl', 'daangnUrl',
+        'naverBlogUrl', 'instagramUrl', 'operatingHours', 'companyAddress',
+        'ceoName', 'businessNumber', 'primaryColor', 'fontMode',
+        'seoTitle', 'seoDescription', 'formspreeEndpoint', 'logoUrl',
+        'serviceIds', 'portfolioIds', 'updatedBy', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'brandName', 'heroBadge', 'heroTitle', 'heroSubtitle',
+        'primaryPhone', 'secondaryPhone', 'kakaoUrl', 'daangnUrl',
+        'naverBlogUrl', 'instagramUrl', 'operatingHours', 'companyAddress',
+        'ceoName', 'businessNumber', 'primaryColor', 'fontMode',
+        'seoTitle', 'seoDescription', 'formspreeEndpoint', 'logoUrl',
+        'serviceIds', 'portfolioIds', 'updatedBy', 'createdAt', 'updatedAt'
+      ]) &&
+      data.brandName is string && data.brandName.size() >= 1 && data.brandName.size() <= 100 &&
+      data.heroBadge is string && data.heroBadge.size() >= 1 && data.heroBadge.size() <= 200 &&
+      data.heroTitle is string && data.heroTitle.size() >= 1 && data.heroTitle.size() <= 300 &&
+      data.heroSubtitle is string && data.heroSubtitle.size() >= 1 && data.heroSubtitle.size() <= 1000 &&
+      data.primaryPhone is string && data.primaryPhone.size() >= 1 && data.primaryPhone.size() <= 50 &&
+      data.secondaryPhone is string && data.secondaryPhone.size() <= 50 &&
+      data.kakaoUrl is string && data.kakaoUrl.size() <= 500 &&
+      data.daangnUrl is string && data.daangnUrl.size() <= 500 &&
+      data.naverBlogUrl is string && data.naverBlogUrl.size() <= 500 &&
+      data.instagramUrl is string && data.instagramUrl.size() <= 500 &&
+      data.operatingHours is string && data.operatingHours.size() >= 1 && data.operatingHours.size() <= 200 &&
+      data.companyAddress is string && data.companyAddress.size() >= 1 && data.companyAddress.size() <= 300 &&
+      data.ceoName is string && data.ceoName.size() >= 1 && data.ceoName.size() <= 100 &&
+      data.businessNumber is string && data.businessNumber.size() >= 1 && data.businessNumber.size() <= 50 &&
+      data.primaryColor is string && data.primaryColor.size() >= 4 && data.primaryColor.size() <= 20 &&
+      data.fontMode is string && data.fontMode.size() >= 4 && data.fontMode.size() <= 20 &&
+      (data.fontMode == 'pretendard' || data.fontMode == 'serif' || data.fontMode == 'clean') &&
+      data.seoTitle is string && data.seoTitle.size() >= 1 && data.seoTitle.size() <= 200 &&
+      data.seoDescription is string && data.seoDescription.size() >= 1 && data.seoDescription.size() <= 500 &&
+      data.formspreeEndpoint is string && data.formspreeEndpoint.size() <= 500 &&
+      data.logoUrl is string && data.logoUrl.size() <= 350000 &&
+      data.serviceIds is list && data.serviceIds.size() <= 30 &&
+      (data.serviceIds.size() == 0 || (data.serviceIds[0] is string && data.serviceIds[0].size() >= 1 && data.serviceIds[0].size() <= 128)) &&
+      data.portfolioIds is list && data.portfolioIds.size() <= 50 &&
+      (data.portfolioIds.size() == 0 || (data.portfolioIds[0] is string && data.portfolioIds[0].size() >= 1 && data.portfolioIds[0].size() <= 128)) &&
+      data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.updatedBy == request.auth.uid &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidServiceItem(data) {
+      return data.keys().hasAll([
+        'id', 'title', 'category', 'tag', 'target', 'duration',
+        'priceStart', 'summary', 'features', 'recommendedPeriod',
+        'updatedBy', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'title', 'category', 'tag', 'target', 'duration',
+        'priceStart', 'summary', 'features', 'recommendedPeriod',
+        'updatedBy', 'createdAt', 'updatedAt'
+      ]) &&
+      data.id is string && data.id.size() >= 1 && data.id.size() <= 128 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 150 &&
+      data.category is string && data.category.size() >= 6 && data.category.size() <= 20 &&
+      (data.category == 'aircon' || data.category == 'icemaker') &&
+      data.tag is string && data.tag.size() >= 1 && data.tag.size() <= 100 &&
+      data.target is string && data.target.size() >= 1 && data.target.size() <= 150 &&
+      data.duration is string && data.duration.size() >= 1 && data.duration.size() <= 100 &&
+      data.priceStart is string && data.priceStart.size() >= 1 && data.priceStart.size() <= 100 &&
+      data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 500 &&
+      data.features is list && data.features.size() >= 1 && data.features.size() <= 15 &&
+      data.features[0] is string && data.features[0].size() >= 1 && data.features[0].size() <= 200 &&
+      data.recommendedPeriod is string && data.recommendedPeriod.size() >= 1 && data.recommendedPeriod.size() <= 100 &&
+      data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.updatedBy == request.auth.uid &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidPortfolioItem(data) {
+      return data.keys().hasAll([
+        'id', 'title', 'category', 'location', 'beforeImage', 'afterImage',
+        'description', 'highlights', 'date', 'updatedBy', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'title', 'category', 'location', 'beforeImage', 'afterImage',
+        'description', 'highlights', 'date', 'updatedBy', 'createdAt', 'updatedAt'
+      ]) &&
+      data.id is string && data.id.size() >= 1 && data.id.size() <= 128 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+      data.category is string && data.category.size() >= 1 && data.category.size() <= 50 &&
+      (
+        data.category == '에어컨 정밀세척' ||
+        data.category == '업소용 제빙기' ||
+        data.category == '시스템/기업' ||
+        data.category == '가정용 토탈케어'
+      ) &&
+      data.location is string && data.location.size() >= 1 && data.location.size() <= 150 &&
+      data.beforeImage is string && data.beforeImage.size() >= 1 && data.beforeImage.size() <= 450000 &&
+      data.afterImage is string && data.afterImage.size() >= 1 && data.afterImage.size() <= 450000 &&
+      data.description is string && data.description.size() >= 1 && data.description.size() <= 1000 &&
+      data.highlights is list && data.highlights.size() >= 1 && data.highlights.size() <= 15 &&
+      data.highlights[0] is string && data.highlights[0].size() >= 1 && data.highlights[0].size() <= 200 &&
+      data.date is string && data.date.size() >= 1 && data.date.size() <= 30 &&
+      data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.updatedBy == request.auth.uid &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // 4. Collection Rules
+
+    // /admins/{adminId}
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId &&
+        isValidAdminRecord(incoming()) &&
+        incoming().createdAt == request.time &&
+        isAdmin();
+      allow update, delete: if false;
+    }
+
+    // /site_content/{docId}
+    match /site_content/{docId} {
+      allow get: if isValidId(docId);
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(docId) && isValidSiteContent(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (isAdmin() || incoming().updatedBy == request.auth.uid);
+      allow update: if isSignedIn() && isValidId(docId) && isValidSiteContent(incoming()) && (
+        isAdmin() ||
+        (
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'brandName', 'heroBadge', 'heroTitle', 'heroSubtitle',
+            'primaryPhone', 'secondaryPhone', 'kakaoUrl', 'daangnUrl',
+            'naverBlogUrl', 'instagramUrl', 'operatingHours', 'companyAddress',
+            'ceoName', 'businessNumber', 'primaryColor', 'fontMode',
+            'seoTitle', 'seoDescription', 'formspreeEndpoint', 'logoUrl',
+            'serviceIds', 'portfolioIds', 'updatedBy', 'updatedAt'
+          ])
+        )
+      );
+      allow delete: if false;
+    }
+
+    // /service_items/{serviceId}
+    match /service_items/{serviceId} {
+      allow get: if isValidId(serviceId);
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(serviceId) && isValidServiceItem(incoming()) &&
+        incoming().id == serviceId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (isAdmin() || incoming().updatedBy == request.auth.uid);
+      allow update: if isSignedIn() && isValidId(serviceId) && isValidServiceItem(incoming()) && (
+        isAdmin() ||
+        (
+          incoming().id == existing().id &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'category', 'tag', 'target', 'duration',
+            'priceStart', 'summary', 'features', 'recommendedPeriod',
+            'updatedBy', 'updatedAt'
+          ])
+        )
+      );
+      allow delete: if isSignedIn() && isValidId(serviceId) && (isAdmin() || existing().updatedBy == request.auth.uid);
+    }
+
+    // /portfolio_items/{itemId}
+    match /portfolio_items/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(itemId) && isValidPortfolioItem(incoming()) &&
+        incoming().id == itemId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (isAdmin() || incoming().updatedBy == request.auth.uid);
+      allow update: if isSignedIn() && isValidId(itemId) && isValidPortfolioItem(incoming()) && (
+        isAdmin() ||
+        (
+          incoming().id == existing().id &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'category', 'location', 'beforeImage', 'afterImage',
+            'description', 'highlights', 'date', 'updatedBy', 'updatedAt'
+          ])
+        )
+      );
+      allow delete: if isSignedIn() && isValidId(itemId) && (isAdmin() || existing().updatedBy == request.auth.uid);
+    }
+  }
+}

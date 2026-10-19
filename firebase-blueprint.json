@@ -1,0 +1,426 @@
+{
+  "entities": {
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted administrator record keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the administrator.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the admin record was created."
+        }
+      },
+      "required": ["uid", "createdAt"]
+    },
+    "SiteContent": {
+      "title": "SiteContent",
+      "description": "Main homepage configuration, texts, contact details, theme settings, logo Base64, and ordered IDs for services and portfolio items.",
+      "type": "object",
+      "properties": {
+        "brandName": {
+          "type": "string",
+          "description": "Website brand name.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "heroBadge": {
+          "type": "string",
+          "description": "Top badge text in the hero section.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "heroTitle": {
+          "type": "string",
+          "description": "Main headline in the hero section.",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "heroSubtitle": {
+          "type": "string",
+          "description": "Subtitle description in the hero section.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "primaryPhone": {
+          "type": "string",
+          "description": "Primary customer service phone number.",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "secondaryPhone": {
+          "type": "string",
+          "description": "Secondary engineer direct phone number.",
+          "minLength": 0,
+          "maxLength": 50
+        },
+        "kakaoUrl": {
+          "type": "string",
+          "description": "KakaoTalk channel URL.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "daangnUrl": {
+          "type": "string",
+          "description": "Daangn market profile URL.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "naverBlogUrl": {
+          "type": "string",
+          "description": "Naver blog URL.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "instagramUrl": {
+          "type": "string",
+          "description": "Instagram profile URL.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "operatingHours": {
+          "type": "string",
+          "description": "Business operating hours description.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "companyAddress": {
+          "type": "string",
+          "description": "Business physical address.",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "ceoName": {
+          "type": "string",
+          "description": "Representative CEO name.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "businessNumber": {
+          "type": "string",
+          "description": "Business registration number.",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "primaryColor": {
+          "type": "string",
+          "description": "Brand accent color hex code.",
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "fontMode": {
+          "type": "string",
+          "description": "Typography mode for the website.",
+          "enum": ["pretendard", "serif", "clean"],
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "seoTitle": {
+          "type": "string",
+          "description": "Document HTML title for SEO.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "seoDescription": {
+          "type": "string",
+          "description": "Document meta description for SEO.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "formspreeEndpoint": {
+          "type": "string",
+          "description": "Formspree endpoint URL for quote notifications.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "Logo image URL or resized Base64 data URI.",
+          "minLength": 0,
+          "maxLength": 350000
+        },
+        "serviceIds": {
+          "type": "array",
+          "description": "Ordered list of service pricing document IDs (max 30)."
+        },
+        "portfolioIds": {
+          "type": "array",
+          "description": "Ordered list of portfolio case document IDs (max 50)."
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "Firebase Auth UID of the admin who saved the content.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "brandName",
+        "heroBadge",
+        "heroTitle",
+        "heroSubtitle",
+        "primaryPhone",
+        "secondaryPhone",
+        "kakaoUrl",
+        "daangnUrl",
+        "naverBlogUrl",
+        "instagramUrl",
+        "operatingHours",
+        "companyAddress",
+        "ceoName",
+        "businessNumber",
+        "primaryColor",
+        "fontMode",
+        "seoTitle",
+        "seoDescription",
+        "formspreeEndpoint",
+        "logoUrl",
+        "serviceIds",
+        "portfolioIds",
+        "updatedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ServiceItem": {
+      "title": "ServiceItem",
+      "description": "Individual service and pricing card item.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique service item identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Service title.",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "category": {
+          "type": "string",
+          "description": "Service category type.",
+          "enum": ["aircon", "icemaker"],
+          "minLength": 6,
+          "maxLength": 20
+        },
+        "tag": {
+          "type": "string",
+          "description": "Short category or promotional tag.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "target": {
+          "type": "string",
+          "description": "Recommended target customers or spaces.",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "duration": {
+          "type": "string",
+          "description": "Estimated service duration.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "priceStart": {
+          "type": "string",
+          "description": "Displayed price or starting price text.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "summary": {
+          "type": "string",
+          "description": "Detailed summary of the service.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "features": {
+          "type": "array",
+          "description": "Bullet points of included service steps (max 15)."
+        },
+        "recommendedPeriod": {
+          "type": "string",
+          "description": "Recommended cleaning cycle.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "UID of the admin who created or updated this item.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "tag",
+        "target",
+        "duration",
+        "priceStart",
+        "summary",
+        "features",
+        "recommendedPeriod",
+        "updatedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PortfolioItemDoc": {
+      "title": "PortfolioItemDoc",
+      "description": "Before and After work portfolio item containing compressed Base64 images (width <= 800px).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique portfolio item ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Portfolio case title.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "category": {
+          "type": "string",
+          "description": "Portfolio category name.",
+          "enum": [
+            "에어컨 정밀세척",
+            "업소용 제빙기",
+            "시스템/기업",
+            "가정용 토탈케어"
+          ],
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "location": {
+          "type": "string",
+          "description": "Service location description.",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "beforeImage": {
+          "type": "string",
+          "description": "Before photo Base64 data URI (<= 800px width) or URL.",
+          "minLength": 1,
+          "maxLength": 450000
+        },
+        "afterImage": {
+          "type": "string",
+          "description": "After photo Base64 data URI (<= 800px width) or URL.",
+          "minLength": 1,
+          "maxLength": 450000
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed work description.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "highlights": {
+          "type": "array",
+          "description": "List of key work highlights (max 15)."
+        },
+        "date": {
+          "type": "string",
+          "description": "Formatted date string of the work.",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "UID of the admin who created or modified this item.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "location",
+        "beforeImage",
+        "afterImage",
+        "description",
+        "highlights",
+        "date",
+        "updatedBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": {
+        "$ref": "#/entities/AdminRecord"
+      },
+      "description": "Administrator UID registry for role verification."
+    },
+    "/site_content/{docId}": {
+      "schema": {
+        "$ref": "#/entities/SiteContent"
+      },
+      "description": "Homepage configuration, main copy, contact info, logo, and ordered ID lists."
+    },
+    "/service_items/{serviceId}": {
+      "schema": {
+        "$ref": "#/entities/ServiceItem"
+      },
+      "description": "Individual service and pricing guide items displayed on the homepage."
+    },
+    "/portfolio_items/{itemId}": {
+      "schema": {
+        "$ref": "#/entities/PortfolioItemDoc"
+      },
+      "description": "Individual Before and After portfolio items with compressed Base64 photos."
+    }
+  }
+}

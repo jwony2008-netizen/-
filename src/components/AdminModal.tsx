@@ -32,6 +32,8 @@ interface AdminModalProps {
   onUpdateQuoteStatus: (id: string, status: QuoteRequest['status']) => void;
   onDeleteQuote: (id: string) => void;
   onClearQuotes: () => void;
+  isFirebaseAuthenticated?: boolean;
+  onOpenFirebaseLogin?: () => void;
 }
 
 export const AdminModal: React.FC<AdminModalProps> = ({
@@ -47,7 +49,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   quotes,
   onUpdateQuoteStatus,
   onDeleteQuote,
-  onClearQuotes
+  onClearQuotes,
+  isFirebaseAuthenticated = false,
+  onOpenFirebaseLogin,
 }) => {
   const [activeTab, setActiveTab] = useState<'quotes' | 'portfolio' | 'content' | 'theme' | 'seo'>('quotes');
   const [formConfig, setFormConfig] = useState<SiteConfig>({ ...config });
@@ -96,9 +100,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     if (!file) return;
     try {
       const compressedDataUrl = await compressImageFile(file, {
-        maxWidth: preserveAlpha ? 600 : 1280,
-        maxHeight: preserveAlpha ? 600 : 1280,
-        quality: 0.82,
+        maxWidth: preserveAlpha ? 600 : 800,
+        maxHeight: preserveAlpha ? 600 : 800,
+        quality: 0.78,
         preserveAlpha,
       });
       setter(compressedDataUrl);
@@ -115,7 +119,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   if (!isOpen) return null;
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isFirebaseAuthenticated) {
     return (
       <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div 
@@ -138,8 +142,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             관리자 모드 보안 인증
           </h3>
           <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-            관리자 대시보드에 접근하려면 비밀번호를 입력해 주세요.
+            Firebase 이메일/비밀번호 로그인을 통해 실시간 클라우드 저장을 활성화하세요.
           </p>
+
+          {onOpenFirebaseLogin && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenFirebaseLogin();
+              }}
+              className="w-full h-11 mb-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+            >
+              Firebase 이메일/비밀번호 로그인 열기
+            </button>
+          )}
 
           <form onSubmit={(e) => {
             e.preventDefault();
@@ -150,27 +167,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             } else {
               setPasswordError('비밀번호가 일치하지 않습니다.');
             }
-          }} className="space-y-4">
+          }} className="space-y-3 pt-3 border-t border-slate-100">
             <div>
               <input
                 type="password"
-                placeholder="비밀번호 입력"
+                placeholder="보조 간편 PIN 입력"
                 value={inputPassword}
                 onChange={(e) => setInputPassword(e.target.value)}
-                className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-mono tracking-widest"
-                autoFocus
+                className="w-full h-10 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-mono tracking-widest"
               />
               {passwordError && (
                 <p className="text-xs text-rose-500 font-medium mt-2">{passwordError}</p>
               )}
             </div>
-
-            <button
-              type="submit"
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 transition-all active:scale-95"
-            >
-              관리자 모드 접속
-            </button>
           </form>
         </div>
       </div>
