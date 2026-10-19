@@ -58,17 +58,17 @@ export const Footer: React.FC<FooterProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 w-full md:w-auto">
             <a
               href={`tel:${config.primaryPhone.replace(/-/g, '')}`}
-              className="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white font-bold text-xs hover:bg-slate-800 transition-colors flex items-center gap-2"
+              className="px-4 sm:px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white font-bold text-xs hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 flex-1 sm:flex-initial whitespace-nowrap"
             >
-              <Phone className="w-3.5 h-3.5 text-blue-400" />
+              <Phone className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               <span>{config.primaryPhone} 전화문의</span>
             </a>
             <button
               onClick={onOpenQuote}
-              className="px-6 py-3 rounded-xl font-bold text-xs text-white shadow-md hover:brightness-110 active:scale-95 transition-all whitespace-nowrap"
+              className="px-4 sm:px-6 py-3 rounded-xl font-bold text-xs text-white shadow-md hover:brightness-110 active:scale-95 transition-all whitespace-nowrap flex-1 sm:flex-initial text-center"
               style={{ backgroundColor: config.primaryColor }}
             >
               실시간 온라인 견적 신청

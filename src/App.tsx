@@ -421,7 +421,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col bg-white text-slate-900 ${
+      className={`min-h-screen w-full overflow-x-hidden flex flex-col bg-white text-slate-900 ${
         config.fontMode === 'clean' ? 'font-sans' : ''
       }`}
     >
@@ -460,7 +460,7 @@ export default function App() {
       />
 
       {/* Main Content Sections */}
-      <main className="flex-1">
+      <main className="flex-1 w-full overflow-x-hidden">
         {/* 1. Hero Section (with inline admin editing) */}
         <Hero
           config={config}

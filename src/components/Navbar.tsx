@@ -21,26 +21,27 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
       {/* Top micro contact bar */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-[11px] sm:text-xs">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-slate-200">
-              <Award className="w-3.5 h-3.5 text-blue-400" />
-              전문 엔지니어 직영 시공 · 30일 안심 A/S 품질 보증
+      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-3 sm:px-8">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-2 text-[11px] sm:text-xs">
+          <div className="flex items-center gap-4 min-w-0">
+            <span className="flex items-center gap-1.5 text-slate-200 truncate">
+              <Award className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span className="hidden sm:inline">전문 엔지니어 직영 시공 · 30일 안심 A/S 품질 보증</span>
+              <span className="sm:hidden">직영 시공 · 30일 안심 A/S</span>
             </span>
             <span className="hidden md:inline text-slate-500">|</span>
             <span className="hidden md:inline text-slate-300">
               운영시간: {config.operatingHours}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <a 
               href={`tel:${config.primaryPhone.replace(/-/g, '')}`} 
-              className="text-white font-medium hover:text-blue-300 flex items-center gap-1 transition-colors"
+              className="text-white font-medium hover:text-blue-300 flex items-center gap-1 transition-colors whitespace-nowrap"
             >
-              <Phone className="w-3 h-3 text-blue-400" />
+              <Phone className="w-3 h-3 text-blue-400 shrink-0" />
               <span>{config.primaryPhone}</span>
             </a>
             <span className="text-slate-600">|</span>
@@ -48,9 +49,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               href={config.kakaoUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-amber-300 hover:text-amber-200 font-medium flex items-center gap-1 transition-colors"
+              className="text-amber-300 hover:text-amber-200 font-medium flex items-center gap-1 transition-colors whitespace-nowrap"
             >
-              <MessageCircle className="w-3 h-3 fill-amber-300 text-amber-300" />
+              <MessageCircle className="w-3 h-3 fill-amber-300 text-amber-300 shrink-0" />
               <span>카카오톡 상담</span>
             </a>
           </div>
@@ -58,17 +59,17 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Main 3-Zone Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-18 flex items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-8 h-16 sm:h-18 flex items-center justify-between gap-2 sm:gap-6">
         {/* Zone 1: Single text element wordmark */}
-        <a href="#" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-md transition-transform group-hover:scale-105 border border-slate-100">
+        <a href="#" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0 group">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-md transition-transform group-hover:scale-105 border border-slate-100 shrink-0">
             <img src={config.logoUrl || IMAGES.logo} alt={config.brandName} className="w-full h-full object-cover" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-slate-900 whitespace-nowrap">
+          <div className="flex flex-col min-w-0">
+            <span className="text-base sm:text-xl font-extrabold tracking-tight text-slate-900 whitespace-nowrap truncate">
               {config.brandName}
             </span>
-            <span className="text-[10px] text-slate-500 tracking-wider font-semibold -mt-1 uppercase">
+            <span className="text-[9px] sm:text-[10px] text-slate-500 tracking-wider font-semibold -mt-0.5 sm:-mt-1 uppercase whitespace-nowrap">
               Doge Clean System
             </span>
           </div>
@@ -94,11 +95,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Zone 3: 1 primary action + Admin dashboard switch */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Admin Mode Toggle Button */}
           <button
             onClick={onOpenAdmin}
-            className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-all ${
+            className={`relative flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-lg border transition-all ${
               isAdminOpen
                 ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
                 : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
@@ -115,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Primary Action Button */}
           <button
             onClick={onOpenQuote}
-            className="px-5 py-2.5 text-sm font-bold text-white rounded-xl shadow-md transition-all hover:brightness-110 active:scale-95 whitespace-nowrap shrink-0 flex items-center gap-2"
+            className="px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white rounded-xl shadow-md transition-all hover:brightness-110 active:scale-95 whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2"
             style={{ backgroundColor: config.primaryColor }}
           >
             <span>간편 견적 문의</span>
@@ -124,7 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile hamburger button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
+            className="lg:hidden p-1.5 sm:p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
             aria-label="메뉴 열기"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
