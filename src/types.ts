@@ -6,8 +6,9 @@ export interface SiteConfig {
   primaryPhone: string;
   secondaryPhone: string;
   kakaoUrl: string;
-  instagramUrl: string;
+  daangnUrl: string;
   naverBlogUrl: string;
+  instagramUrl?: string;
   operatingHours: string;
   companyAddress: string;
   ceoName: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MessageCircle, Instagram, Settings } from 'lucide-react';
+import { Phone, MessageCircle, Carrot, Settings } from 'lucide-react';
 import { SiteConfig } from '../types';
 
 interface FooterProps {
@@ -62,33 +62,36 @@ export const Footer: React.FC<FooterProps> = ({ config, onOpenQuote, onOpenAdmin
             <p className="text-xs text-slate-400 leading-relaxed max-w-md">
               에어컨 정밀 분해 세척, 카페 및 업소용 제빙기 스케일링 고온 스팀 살균 전문 서비스. 최첨단 전문 장비와 친환경 인증 세제를 고집하여 안심할 수 있는 실내 공기와 깨끗한 얼음을 전해드립니다.
             </p>
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
               <a
-                href={config.kakaoUrl}
+                href={config.kakaoUrl || 'http://pf.kakao.com/_xexbJxeG/friend'}
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-lg bg-amber-400/10 hover:bg-amber-400/20 text-amber-400 flex items-center justify-center transition-colors"
-                title="카카오톡 채널"
+                className="h-8 px-2.5 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 flex items-center gap-1.5 transition-all border border-amber-400/25 text-xs font-semibold"
+                title="카카오톡 채널 상담"
               >
-                <MessageCircle className="w-4 h-4 fill-current" />
+                <MessageCircle className="w-3.5 h-3.5 fill-current" />
+                <span>카카오톡</span>
               </a>
               <a
-                href={config.naverBlogUrl}
+                href={config.naverBlogUrl || 'https://blog.naver.com/dogecare'}
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors font-bold text-xs"
-                title="네이버 블로그"
+                className="h-8 px-2.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 flex items-center gap-1.5 transition-all border border-emerald-500/25 text-xs font-semibold"
+                title="네이버 공식 블로그"
               >
-                N
+                <span className="w-3.5 h-3.5 rounded bg-emerald-500 text-slate-950 font-black text-[9px] flex items-center justify-center leading-none">N</span>
+                <span>블로그</span>
               </a>
               <a
-                href={config.instagramUrl}
+                href={config.daangnUrl || 'https://daangn.com/kr/local-profile/도지홈케어-전북-1440766/?'}
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 flex items-center justify-center transition-colors"
-                title="인스타그램"
+                className="h-8 px-2.5 rounded-lg bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 flex items-center gap-1.5 transition-all border border-orange-500/25 text-xs font-semibold"
+                title="당근 비즈프로필"
               >
-                <Instagram className="w-4 h-4" />
+                <Carrot className="w-3.5 h-3.5 text-[#FF6F0F]" />
+                <span>당근</span>
               </a>
             </div>
           </div>

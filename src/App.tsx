@@ -31,8 +31,20 @@ export default function App() {
   // 1. Persistent State initialized from LocalStorage (with schema migration)
   const [config, setConfig] = useState<SiteConfig>(() => {
     try {
-      const saved = localStorage.getItem('doge_clean_config_v6');
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem('doge_clean_config_v7');
+      if (saved) return { ...initialSiteConfig, ...JSON.parse(saved) };
+      // Seamless migration from v6 with updated Kakao, Daangn, and Naver Blog links
+      const prevV6 = localStorage.getItem('doge_clean_config_v6');
+      if (prevV6) {
+        const parsed = JSON.parse(prevV6);
+        return {
+          ...initialSiteConfig,
+          ...parsed,
+          kakaoUrl: initialSiteConfig.kakaoUrl,
+          daangnUrl: initialSiteConfig.daangnUrl,
+          naverBlogUrl: initialSiteConfig.naverBlogUrl,
+        };
+      }
       return initialSiteConfig;
     } catch {
       return initialSiteConfig;
@@ -69,7 +81,7 @@ export default function App() {
   // Sync to LocalStorage & Document Meta
   useEffect(() => {
     try {
-      localStorage.setItem('doge_clean_config_v6', JSON.stringify(config));
+      localStorage.setItem('doge_clean_config_v7', JSON.stringify(config));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
@@ -145,6 +157,7 @@ export default function App() {
     setConfig(initialSiteConfig);
     setPortfolio(initialPortfolio);
     setQuotes(initialQuotes);
+    localStorage.removeItem('doge_clean_config_v7');
     localStorage.removeItem('doge_clean_config_v6');
     localStorage.removeItem('doge_clean_portfolio_v6');
     localStorage.removeItem('doge_clean_quotes_v6');
