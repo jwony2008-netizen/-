@@ -100,6 +100,7 @@ export default function App() {
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginModalMode, setLoginModalMode] = useState<'login' | 'register'>('login');
   const [isSavingFirestore, setIsSavingFirestore] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -433,7 +434,12 @@ export default function App() {
           onSaveAll={() => handleSaveAllToFirestore()}
           isSaving={isSavingFirestore}
           saveMessage={saveMessage}
+          primaryColor={config.primaryColor}
           onOpenDashboard={() => setIsAdminModalOpen(true)}
+          onOpenAddAdmin={() => {
+            setLoginModalMode('register');
+            setIsLoginModalOpen(true);
+          }}
           onLogout={handleAdminLogout}
         />
       )}
@@ -565,7 +571,13 @@ export default function App() {
       {/* Firebase Auth Email/Password Admin Login Modal */}
       <AdminLoginModal
         isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
+        onClose={() => {
+          setIsLoginModalOpen(false);
+          setLoginModalMode('login');
+        }}
+        isAuthenticated={Boolean(adminUser)}
+        initialMode={loginModalMode}
+        primaryColor={config.primaryColor}
         onLoginSuccess={() => {
           setIsInlineEditing(true);
           showSaveToast('관리자 모드로 로그인되었습니다. 페이지에서 바로 수정 후 저장하세요!');

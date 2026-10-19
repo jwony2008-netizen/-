@@ -1,5 +1,5 @@
 import React from 'react';
-import { Save, Edit3, Eye, LayoutDashboard, LogOut, Check, ShieldCheck } from 'lucide-react';
+import { Save, Edit3, Eye, LayoutDashboard, LogOut, Check, ShieldCheck, UserPlus } from 'lucide-react';
 import { User } from '../firebase';
 
 interface AdminEditBarProps {
@@ -8,10 +8,12 @@ interface AdminEditBarProps {
   onToggleInlineEditing: () => void;
   onSaveAll: () => Promise<void>;
   onOpenDashboard: () => void;
+  onOpenAddAdmin?: () => void;
   onLogout: () => void;
   isSaving: boolean;
-  saveStatusMsg: string;
-  primaryColor: string;
+  saveStatusMsg?: string;
+  saveMessage?: string;
+  primaryColor?: string;
 }
 
 export const AdminEditBar: React.FC<AdminEditBarProps> = ({
@@ -20,11 +22,15 @@ export const AdminEditBar: React.FC<AdminEditBarProps> = ({
   onToggleInlineEditing,
   onSaveAll,
   onOpenDashboard,
+  onOpenAddAdmin,
   onLogout,
   isSaving,
   saveStatusMsg,
+  saveMessage,
   primaryColor,
 }) => {
+  const statusText = saveMessage || saveStatusMsg || '';
+
   return (
     <div className="sticky top-0 z-50 bg-slate-950 text-white border-b border-blue-500/40 shadow-xl px-4 sm:px-8 py-2.5">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
@@ -36,10 +42,10 @@ export const AdminEditBar: React.FC<AdminEditBarProps> = ({
           <span className="text-xs text-slate-300 font-mono hidden sm:inline">
             {user.email || 'Admin'}
           </span>
-          {saveStatusMsg && (
+          {statusText && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold animate-in fade-in">
               <Check className="w-3.5 h-3.5" />
-              <span>{saveStatusMsg}</span>
+              <span>{statusText}</span>
             </span>
           )}
         </div>
@@ -77,6 +83,18 @@ export const AdminEditBar: React.FC<AdminEditBarProps> = ({
             <span className="md:hidden">통합 관리</span>
           </button>
 
+          {onOpenAddAdmin && (
+            <button
+              type="button"
+              onClick={onOpenAddAdmin}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all flex items-center gap-1.5"
+              title="추가 관리자 계정 생성"
+            >
+              <UserPlus className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">계정 추가</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onSaveAll}
@@ -102,3 +120,4 @@ export const AdminEditBar: React.FC<AdminEditBarProps> = ({
     </div>
   );
 };
+
